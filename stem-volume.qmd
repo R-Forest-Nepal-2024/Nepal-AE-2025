@@ -1,0 +1,183 @@
+---
+title: "Nepal 2025 allometric equations"
+subtitle: "Stem total volume models"
+author: TBD
+date: '`r Sys.Date()`'
+format: 
+  html:
+    code-fold: true
+    #code-tools: true
+    embed-resources: true
+    number-sections: true
+  docx: 
+    number-sections: true
+    toc: true
+editor: visual
+---
+
+```{r}
+#| include: false
+usr <- list()
+usr$data_file <- "./data/AE-raw-2025-04-01.xlsx"
+
+data_init <- list()
+data_clean <- list()
+data_clean_gg <- list()
+
+## Model storage
+stem_taper <- list()
+
+source("R/setup/init.R")
+
+source("R/setup/get-data.R")
+
+source("R/user/prepare-stem-profile.R")
+
+source("R/user/prepare-stem-volume.R")
+```
+
+# Context {.unnumbered}
+
+::: {style="text-align: center"}
+**TBD**
+:::
+
+-   context for work, old existing AE, WB funding, etc.
+
+-   Objective of this study
+
+# Method
+
+## Site selection
+
+-   Describe how site selection helps to meet the objective
+
+-   Describe link with NFI data to find big trees
+
+-   ADD map of site locations
+
+## Field work
+
+-   Describe the measurements of plot variables, tree inventory and destructive sampling
+
+-   Describe lab measurement
+
+-   Describe math formulas to get aboveground dry mass from partial weight measurement in the field
+
+-   ADD Photos
+
+The method is destructive sampling but the approach is semi-destructive sampling, since big log where not weighted in the field.
+
+## Allometric equation development
+
+### General approach
+
+1.  Data cleaning
+    1.  Visualize the data and detect outliers.
+    2.  Check the data and if necessary the field form, correct the data if data entry error.
+    3.  Remove the outliers that would influence the models and are not frequent in the forest. For example, trees with large drop in stem profile, volume or biomass due to a low fork are not used in the model development.
+2.  Model development
+    1.  For non-linear models with Maximum Likelihood approach, get starting paramter values. Starting values can come from the scientific literature or from log-transformed linear models for power models.
+    2.  Develop the model and test the effect of various category variables as random effect.
+    3.  Use parameters significance (t-test) and visual checks to assess the models 'goodness of fit'. For a model type: ${Y}_{pred} = f\left(X\right)$ , with ${Y}_{obs} = {Y}_{pred} + res$ Visual check include the following 3 graphs:
+        1.  ${Y}_{obs} = f\left({Y}_{pred}\right)$,
+
+        2.  $res = f\left({Y}_{pred}\right)$, and
+
+        3.  ${res}_{w} = f\left({Y}_{pred}\right)$,
+
+            with ${res}_{w}$ the weighted residuals following the residual variance model ${res}_{w} = res/{X}^{c}$ and $c$ defined by $res \sim \mathcal{N}\left(0, \sigma^c\right)$ .
+3.  Model selection:
+    1.  Record the model **AIC** (Akaike Information Criteria) as a model performance indicator to compare models that have the same output variable.
+    2.  Compare the models for each output variable. The model that have the best (i.e. lowest) AIC is selected. If such model has a random effect of a category variable, individual models for each category are developed.
+    3.  Model validation.
+        1.  Bias is the main validation criteria: $bias = \sum_k |{Y}_{pred} - {Y}_{obs}|$ and $bias\% = \sum_k |{Y}_{pred} - {Y}_{obs}| / {Y}_{obs}$.
+        2.  (if times allows) Model efficiency: $ef = 1 - \frac{\sum_k ({Y}_{obs} - {Y}_{pred})^2}{\sum_k({Y}_{obs} - mean({Y}_{obs}))^2}$.
+        3.  Cross validation, the datasets for each model development are split into $K$ folds.
+
+### Non-linear vs log-transformed models
+
+The AE development primarily relies on non-linear models with Maximum Likelihood approach, using the `nlme()` function from the R package {nlme}.
+
+If one category variable improve the model (lower AIC with no visible defect from observation graphs), separate models are develop for each category (for example, species names).
+
+Non-linear maximum likelihood models are preferred over log-transformed linear model for their ability to:
+
+-   have additive residuals with a heteroscedasticity covered with a power model on the residuals' variance,
+
+-   test random effect on all or part of the models' parameters to evaluate their impact.
+
+## Models tested
+
+List of volume models:
+
+1.  $V = a.D^b$,
+2.  $V = a.\text{D2H}^b$,
+3.  $V = a.D^b.H^c$,
+
+For the models with $\text{D2H} = D^2.H$ the variance model were tested with both $D$ and $D2H$ as input variable but $D$ systematically improved the models' AIC and therefore only those are presented.
+
+On all models, the impact of the following categories were tested as random effects:
+
+-   coniferous vs broadleaf
+
+-   species group (6 species + one group for *Castonopsis* genus)
+
+-   species (9 species)
+
+-   Province
+
+-   Physiographic zone
+
+### Model validation
+
+Cross validation and comparison with literature models (See other models for Shorea Robusta, Bangladesh Thailand, pan-tropical model, Nepal historical models).
+
+# Results
+
+## Observations
+
+```{r}
+#| nlayout-ncol: 2
+
+data_clean$tree_stem_v |>
+  ggplot(aes(x = tree_dbh, y = tree_total_length)) + 
+  geom_point(aes(color = n_log_total)) +
+  scale_color_viridis_c() +
+  labs(
+    x = "Diameter at breast height (cm)",
+    y = "tree total length (m)",
+    color = "N sections"
+  )
+
+data_clean$tree_stem_v |>
+  ggplot(aes(x = tree_dbh, y = tree_total_length)) + 
+  geom_point(aes(color = species_group)) +
+  scale_color_viridis_d() +
+  labs(
+    x = "Diameter at breast height (cm)",
+    y = "tree total length (m)",
+    color = ""
+  )
+
+```
+
+## Data cleaning
+
+## Model development and selection
+
+Biomass stem:
+
+$$
+B_{stem} = 0.0000511 \times (d^2.h.wd)^{0.9605}
+$$
+
+## Model validation
+
+# Discussion
+
+# Conclusion
+
+# Acknowledgment
+
+# Literature

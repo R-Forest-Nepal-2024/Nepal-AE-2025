@@ -1,3 +1,11 @@
+## Custom gitignore
+data/
+res/
+.DS_Store
+*.html
+*.docx
+
+
 # History files
 .Rhistory
 .Rapp.history
