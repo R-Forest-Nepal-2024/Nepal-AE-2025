@@ -142,7 +142,7 @@ data_clean$tree_stem_v <- data_clean$tree_stem_v |>
 tmp$outlier3 <- data_clean$tree_stem_v |>
   filter(updated_tree_code == "186Sr045") 
 
-data_clean$tree_stem_v |>
+gg_stemV_cleaning <- data_clean$tree_stem_v |>
   filter(tree_dbh < 40) |>
   ggplot(aes(x = tree_dbh, y = tree_stem_v, color = species_name)) +
   geom_point() +
@@ -150,6 +150,25 @@ data_clean$tree_stem_v |>
   geom_text_repel(data = tmp$outlier3, aes(label = updated_tree_code)) +
   theme(legend.position = "bottom") +
   labs(color = "")
+
+print(gg_stemV_cleaning)
+
+
+## Check
+tmp$outliers <- data_clean$tree_stem_v |>
+  filter(
+    (species_name == "Largestroemia parviflora" & tree_dbh > 60) |
+      (species_name == "Schima Wallichi" & tree_dbh > 60) |
+      (species_name == "Shorea robusta" & tree_dbh > 110) |
+      is.na(species_name)
+  ) 
+
+data_clean$tree_stem_v |>
+  ggplot(aes(x = tree_dbh, y = tree_stem_v)) +
+  geom_point(aes(color = species_name), shape = 21) + 
+  geom_point(data = tmp$outliers, shape = 21, col = "red", size = 6) +
+  theme(legend.position = "none") +
+  facet_wrap(~species_group)
 
 
 #rm(tmp)

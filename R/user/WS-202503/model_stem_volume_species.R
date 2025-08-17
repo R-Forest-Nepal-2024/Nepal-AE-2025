@@ -6,24 +6,11 @@ data_md <- data_clean$tree_stem_v |>
   filter(
     !(species_name == "Largestroemia parviflora" & tree_dbh > 60),
     !(species_name == "Schima Wallichi" & tree_dbh > 60),
-    !(species_name == "Shorea robusta" & tree_dbh > 110)
+    !(species_name == "Shorea robusta" & tree_dbh > 110),
+    !is.na(species_name)
     ) |>
   mutate(no_group = "a")
 
-## Check
-tmp$outliers <- data_clean$tree_stem_v |>
-  filter(
-    (species_name == "Largestroemia parviflora" & tree_dbh > 60) |
-    (species_name == "Schima Wallichi" & tree_dbh > 60) |
-    (species_name == "Shorea robusta" & tree_dbh > 110)
-  ) 
-
-data_clean$tree_stem_v |>
-  ggplot(aes(x = tree_dbh, y = tree_stem_v)) +
-  geom_point(aes(color = species_name), shape = 21) + 
-  geom_point(data = tmp$outlier, shape = 21, col = "red", size = 6) +
-  theme(legend.position = "none") +
-  facet_wrap(~species_group)
 
 ## Start group modelling
 vec_sp <- sort(unique(data_md$species_group))

@@ -31,4 +31,4 @@ source("R/user/prepare-stem-biomass.R")
 
 source("R/user/model-stem-profile.R")
 
-source("R/user/model-stem-volume.R")
+#source("R/user/model-stem-volume.R")
