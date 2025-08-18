@@ -1,9 +1,32 @@
 
+## Stem biomass is based on stem volume and stem disc measurements
+## Requires:
+## 1. user inputs
+## 2. initiation  script
+## 3. load initial data script
+## 4. stem profile preparation 
+## 5. stem volume preparation
+## 6. stem disk preparation
 
-if (is.null(data_clean)) stop("Run 'prepare-stem-profile.R' first to get the clean stem data")
-if (!"tree_stem_v" %in% names(data_clean)) stop("Run 'prepare-stem-volume.R' first to get tree volume data")
+## Load preparation scripts ####
+
+if (!"usr" %in% ls())      source("R/user/user-inputs.R")
+if (!"nlme_out" %in% ls()) source("R/setup/init.R")
+if ("data_init" %in% ls() & length(data_init) == 0) source("R/setup/get-data.R")
+if ("data_clean" %in% ls() & length(data_clean) == 0) source("R/user/prepare-stem-profile.R")
+if ("data_clean" %in% ls() & !"tree_stem_v" %in% names(data_clean)) source("R/user/prepare-stem-volume.R")
+
+
+
+# if (is.null(data_clean)) stop("Run 'prepare-stem-profile.R' first to get the clean stem data")
+# if (!"tree_stem_v" %in% names(data_clean)) stop("Run 'prepare-stem-volume.R' first to get tree volume data")
+
+
 
 tmp <- list()
+
+
+
 
 
 ## Group field measurements of Quarters

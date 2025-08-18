@@ -33,6 +33,12 @@ if (!"data-clean" %in% list.files("data")) dir.create("data/data-clean")
 if (!"res" %in% list.files())              dir.create("res")
 
 
+## Create lists to store data
+data_init <- list()
+data_clean <- list()
+data_clean_gg <- list()
+
+
 ## Function for getting quick nlme outputs
 
 ## !!! FOR TESTING ONLY

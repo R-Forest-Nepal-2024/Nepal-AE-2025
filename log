@@ -1,0 +1,5 @@
+2025-08-18
+in "data/"
+- make file "AE-raw-2025-08-18.xlsx" from "AE-raw-2025-04-01.xlsx"
+    - Changed name "07-disk-stem" into "07-disk-stem-OLD" 
+    - Added "final_stem_dat-2025-08-18.csv" into 07-disc-stem and renamed columns

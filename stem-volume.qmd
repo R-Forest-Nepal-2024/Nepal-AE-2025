@@ -38,35 +38,76 @@ source("R/user/prepare-stem-volume.R")
 
 # Context {.unnumbered}
 
+-   *context for work, old existing AE, WB funding, etc.*
+
+-   *Objective of this study*
+
 ::: {style="text-align: center"}
 **TBD**
 :::
-
--   context for work, old existing AE, WB funding, etc.
-
--   Objective of this study
 
 # Method
 
 ## Site selection
 
--   Describe how site selection helps to meet the objective
+-   *Describe how site selection helps to meet the objective*
 
--   Describe link with NFI data to find big trees
+-   *Describe link with NFI data to find big trees*
 
--   ADD map of site locations
+-   *ADD map of site locations*
 
-## Field work
+::: {style="text-align: center"}
+**TBD**
+:::
 
--   Describe the measurements of plot variables, tree inventory and destructive sampling
+## Field and lab work
 
--   Describe lab measurement
+-   *Describe the measurements of plot variables, tree inventory and destructive sampling*
 
--   Describe math formulas to get aboveground dry mass from partial weight measurement in the field
+-   *Describe lab measurement*
 
--   ADD Photos
+-   *Describe math formulas to get aboveground dry mass from partial weight measurement in the field*
 
-The method is destructive sampling but the approach is semi-destructive sampling, since big log where not weighted in the field.
+-   *ADD Photos*
+
+### Field work
+
+*The method is destructive sampling but the approach is semi-destructive sampling, since big log where not weighted in the field.*
+
+::: {style="text-align: center"}
+**TBC**
+:::
+
+Field measurements were split into XX group of data:
+
+1.  Landscape indicators (see tab 01-info).
+2.  Tree inventory of all trees in a 10 m radius of the selected tree for felling (see 02-tree-inventory).
+3.  Sampled tree characteristics (see tab 03-tree)
+4.  Stem diameter measurements (see tab 04-stem)
+5.  Big branch diameter measurements (see tab 05-branch)
+6.  Stem and big branch disc measurements (see tab 07-disc-stem)
+
+For stem and big branch diameter measurements, diameter over and under bark were measured at 0.3, 0.8, 1.3, 1.8 and 2.3 m height then every meter (3.3, 4.3, etc.). When abnormal tree part were found (swollen, broken, etc.) additional diameter measurements were taken at the beginning middle and end of the abnormal sections.
+
+A disc was cut at 0.8m, 1.8m, then 3.3 and every 2 meters. This was done regularly whether or not the disc portion was in or near an abnormal section.
+
+![Stem measurements in the field](img/fieldwork-schema.png){.lightbox fig-alt="fieldwork-schema" fig-align="center"}
+
+### Laboratory work
+
+*Separating bark from wood, method for volume measurement, oven dry: specify oven temperature, and method to know when the samples are dry (weight stabilisation for ex., how many days).*
+
+::: {style="text-align: center"}
+**TBD**
+:::
+
+### Data preparation
+
+For wood logs in trees' stem and branches, from the trees' base to 10 cm, log dry weight were calculated based on log volume and disc wood density:
+
+$$
+W_{d, log_{i, j}} = V_{f, log_{i, j}} \times \rho_{b, j} 
+$$
 
 ## Allometric equation development
 
@@ -77,7 +118,7 @@ The method is destructive sampling but the approach is semi-destructive sampling
     2.  Check the data and if necessary the field form, correct the data if data entry error.
     3.  Remove the outliers that would influence the models and are not frequent in the forest. For example, trees with large drop in stem profile, volume or biomass due to a low fork are not used in the model development.
 2.  Model development
-    1.  For non-linear models with Maximum Likelihood approach, get starting paramter values. Starting values can come from the scientific literature or from log-transformed linear models for power models.
+    1.  For non-linear models with Maximum Likelihood approach, get starting parameter values. Starting values can come from the scientific literature or from log-transformed linear models for power models.
     2.  Develop the model and test the effect of various category variables as random effect.
     3.  Use parameters significance (t-test) and visual checks to assess the models 'goodness of fit'. For a model type: ${Y}_{pred} = f\left(X\right)$ , with ${Y}_{obs} = {Y}_{pred} + res$ Visual check include the following 3 graphs:
         1.  ${Y}_{obs} = f\left({Y}_{pred}\right)$,
@@ -107,7 +148,7 @@ Non-linear maximum likelihood models are preferred over log-transformed linear m
 
 -   test random effect on all or part of the models' parameters to evaluate their impact.
 
-## Models tested
+### Models tested
 
 List of volume models:
 

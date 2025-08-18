@@ -171,4 +171,10 @@ data_clean$tree_stem_v |>
   facet_wrap(~species_group)
 
 
-#rm(tmp)
+data_clean$tree_stem_v |>
+  ggplot(aes(x = tree_dbh, y = tree_stem_v)) +
+  geom_point(aes(color = species_name), shape = 21) + 
+  geom_point(data = tmp$outliers, shape = 21, col = "red", size = 6) +
+  theme(legend.position = "none")
+
+
