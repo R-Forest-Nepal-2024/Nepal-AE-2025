@@ -1,0 +1,50 @@
+---
+title: "Biomass models"
+format: html
+author: TBD
+date: '`r Sys.Date()`'
+format: 
+  html:
+    code-fold: true
+    #code-tools: true
+    embed-resources: true
+    number-sections: true
+  docx: 
+    number-sections: true
+    toc: true
+editor: visual
+---
+
+General method:
+
+$$
+B_{log} = V_{log, i} * \rho_{i}
+$$
+
+with $i$ the disc section matching the log.
+
+$$
+\rho_i = \frac{m_{dry,i}}{V_{fresh, i}}
+$$
+
+Gap filling in field/lab wood density values at disc section
+
+When $m_{dry,i}$ is missing for a specific disc, it is recalculated from the the following method:
+
+$$
+m_{dry,i} = \chi_i \times m_{fresh, i}
+$$
+
+With
+
+$\chi_i$ the mean tree moisture content of the tree if there is data and $\chi_i$ the mean moisture content of the species of all disc values are missing for a specific tree. This is valid for all species except Pr, as $\chi$ is constant across tree positions (when removing all disc with diameter overbark greater than 10cm.
+
+For Pr, the moisture content decreases as the relative height of sample increases.
+
+Detecting outliers
+
+-   moisture content for logs:
+
+    -   all values above 0.95 and below 0.15 were considered outliers
+
+    -   
