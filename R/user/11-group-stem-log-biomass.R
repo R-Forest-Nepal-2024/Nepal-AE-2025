@@ -80,8 +80,9 @@ stem_logb <- data_clean$stem_logv |>
 summary(stem_logb$log_b)
 summary(stem_logb$log_bwood)
 summary(stem_logb$log_bbark)
-
-
+summary(stem_logb$log_base_diam_ob)
+summary(stem_logb$log_base_diam_ub)
+summary(stem_logb$log_top_diam_ub)
 
 
 tmp$vec_missing <- stem_logb |> filter(is.na(log_b)) |> pull(updated_tree_code) |> unique()

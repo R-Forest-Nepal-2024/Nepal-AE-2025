@@ -26,7 +26,7 @@ data_clean$stem_log <- data_clean$stem_log |>
 
 ## Check relative D and H
 # data_clean$stem_log |>
-#   filter(measurement_type %in% c("normal", "top")) |>
+#   filter(log_meas_type %in% c("normal", "top")) |>
 #   ggplot(aes(x = hr, y = dr)) +
 #   geom_line(aes(color = updated_tree_code), alpha = 0.6) +
 #   theme(legend.position = "none") +
@@ -47,7 +47,7 @@ data_clean_gg$stem_check <- data_clean$stem_log |>
   geom_point(aes(x = hr, y = dr), shape = 21, col = "red", size = 4) +
   geom_text_repel(aes(x = hr, y = dr, label = paste(updated_tree_code, log_no)), min.segment.length = 0, max.overlaps = 12) +
   facet_wrap(~tree_species_group) +
-  #facet_grid(measurement_type~conif) +
+  #facet_grid(log_meas_type~conif) +
   theme(legend.position = "none")
 
 print(data_clean_gg$stem_check)
@@ -97,7 +97,7 @@ print(data_clean_gg$stem_check2)
 
 ## Line check
 data_clean_gg$stem_check3 <- data_clean$stem_log_taper |>
-  filter(measurement_type %in% c("normal", "top")) |>
+  filter(log_meas_type %in% c("normal", "top")) |>
   ggplot(aes(x = hr, y = dr)) +
   geom_line(aes(color = updated_tree_code)) +
   facet_grid(tree_species_group~plot_prov) +
@@ -107,7 +107,7 @@ print(data_clean_gg$stem_check3)
 
 ## More outlier checks
 # data_clean_gg$stem_check4 <- data_clean$stem_log_taper |>
-#   filter(measurement_type %in% c("normal", "top")) |>
+#   filter(log_meas_type %in% c("normal", "top")) |>
 #   filter(province == "Madhesh", str_detect(species_name, "Shorea")) |>
 #   ggplot(aes(x = hr, y = dr)) +
 #   geom_line(aes(color = updated_tree_code)) +
