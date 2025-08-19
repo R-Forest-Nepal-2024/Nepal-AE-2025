@@ -15,7 +15,7 @@ if (!"nlme_out" %in% ls()) source("R/setup/init.R")
 if ("data_init" %in% ls() & length(data_init) == 0) source("R/setup/get-data.R")
 if ("data_clean" %in% ls() & length(data_clean) == 0) source("R/user/prepare-stem-profile.R")
 if ("data_clean" %in% ls() & !"tree_stem_v" %in% names(data_clean)) source("R/user/prepare-stem-volume.R")
-
+if ("data_clean" %in% ls() & !"stem_disc" %in% names(data_clean)) source("R/user/prepare-stem-disc.R")
 
 
 # if (is.null(data_clean)) stop("Run 'prepare-stem-profile.R' first to get the clean stem data")
