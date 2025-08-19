@@ -12,29 +12,100 @@
 
 if (!"usr" %in% ls())      source("R/user/user-inputs.R")
 if (!"nlme_out" %in% ls()) source("R/setup/init.R")
-if ("data_init" %in% ls() & length(data_init) == 0) source("R/setup/get-data.R")
-if ("data_clean" %in% ls() & length(data_clean) == 0) source("R/user/prepare-stem-profile.R")
-if ("data_clean" %in% ls() & !"tree_stem_v" %in% names(data_clean)) source("R/user/prepare-stem-volume.R")
-if ("data_clean" %in% ls() & !"stem_disc" %in% names(data_clean)) source("R/user/prepare-stem-disc.R")
+if (length(data_init) == 0) source("R/setup/get-data.R")
 
+ls_stem_log_scripts <- list.files("R/user", pattern = "04.*stem-log", full.names = T)
+if (!("stem_log" %in% names(data_clean))) walk(ls_stem_log_scripts, source)
 
-# if (is.null(data_clean)) stop("Run 'prepare-stem-profile.R' first to get the clean stem data")
-# if (!"tree_stem_v" %in% names(data_clean)) stop("Run 'prepare-stem-volume.R' first to get tree volume data")
-
-
+if (!("stem_disc" %in% names(data_clean))) source("R/user/07-prepare-stem-disc.R")
 
 tmp <- list()
+
 
 
 ##
 ## Make tree stem biomass ####
 ##
 
-## + assign correct disc value to correct log
-data_clean$tree_stem_v
-data_clean$stem_v
+## assign correct disc value to correct log
+## join disc based on tree ID and disc ID
+
+tmp$disc <- data_clean$stem_disc |>
+  select(updated_tree_code, disc_no, tree_species_code, disc_wd_wood = wd_wood, disc_wd_bark = wd_bark)
+
+tmp$wd_wood_meantree <- data_clean$stem_disc |> distinct(updated_tree_code, tree_wd_wood = wd_wood_meantree)
+tmp$wd_wood_meansp   <- data_clean$stem_disc |> distinct(tree_species_code, species_wd_wood = wd_wood_meansp)
+tmp$wd_bark_meantree <- data_clean$stem_disc |> distinct(updated_tree_code, tree_wd_bark = wd_bark_meantree)
+tmp$wd_bark_meansp   <- data_clean$stem_disc |> distinct(tree_species_code, species_wd_bark = wd_bark_meansp)
 
 
+
+stem_logb <- data_clean$stem_logv |>
+  mutate(
+    disc_no = case_when(
+      log_top_pom <=  1.3 ~ 1,
+      log_top_pom <=  2.3 ~ 2,
+      # log_top_pom <=  6.3 ~ 4,
+      # log_top_pom <=  8.3 ~ 5,
+      # log_top_pom <= 10.3 ~ 6,
+      TRUE ~ ceiling((log_top_pom - 2.3)/2 + 2)
+    ),
+    disc_wd_wood= NA,
+    disc_wd_bark = NA,
+    tree_wd_wood = NA,
+    tree_wd_bark = NA,
+    species_wd_wood = NA,
+    species_wd_bark = NA
+    ) |>
+  left_join(tmp$disc, by = join_by(updated_tree_code, disc_no, tree_species_code), suffix = c("_rm", "")) |>
+  left_join(tmp$wd_wood_meantree, by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
+  left_join(tmp$wd_wood_meansp  , by = join_by(tree_species_code), suffix = c("_rm", "")) |>
+  left_join(tmp$wd_bark_meantree, by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
+  left_join(tmp$wd_bark_meansp  , by = join_by(tree_species_code), suffix = c("_rm", "")) |>
+  select(-ends_with("_rm")) |>
+  mutate(
+    log_bwood = case_when(
+      !is.na(disc_wd_wood) ~ log_vub * disc_wd_wood,
+      !is.na(tree_wd_wood) ~ log_vub * tree_wd_wood,
+      TRUE ~ log_vub * species_wd_wood
+    ),
+    log_bbark = case_when(
+      !is.na(disc_wd_bark) ~ log_vub * disc_wd_bark,
+      !is.na(tree_wd_bark) ~ log_vub * tree_wd_bark,
+      TRUE ~ log_vub * species_wd_bark
+    ),
+    log_b = log_bwood + log_bbark
+  )
+
+summary(stem_logb$log_b)
+summary(stem_logb$log_bwood)
+summary(stem_logb$log_bbark)
+
+
+
+
+tmp$vec_missing <- stem_logb |> filter(is.na(log_b)) |> pull(updated_tree_code) |> unique()
+tt <- stem_logb |> filter(updated_tree_code %in% tmp$vec_missing)
+tt
+
+stem_logb |>
+  #filter(updated_tree_code == "001Sr001") |>
+  ggplot(aes(x = disc_no, y = log_top_pom)) +
+  geom_point() +
+  scale_y_continuous(minor_breaks = seq(0,max(stem_logb$log_base_pom), 1))
+
+
+stem_logb |>
+  ggplot(aes(x = log_base_diam_ob^2*log_length, y = log_b)) +
+  geom_point()
+
+stem_logb |>
+  ggplot(aes(x = log_vob, y = log_b)) +
+  geom_point()
+
+stem_logb |>
+  ggplot(aes(x = rh, y = )) +
+  geom_point()
 
 
 # ## Group field measurements of Quarters

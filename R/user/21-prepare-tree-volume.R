@@ -1,68 +1,27 @@
 
+if (!"usr" %in% ls())      source("R/user/user-inputs.R")
+if (!"nlme_out" %in% ls()) source("R/setup/init.R")
+if (length(data_init) == 0) source("R/setup/get-data.R")
 
-if (is.null(data_clean)) stop("Run 'prepare-stem-profile.R' first to get the clean stem data")
-
+ls_stem_log_scripts <- list.files("R/user", pattern = "stem-log", full.names = T)
+if (!("stem_log" %in% names(data_clean))) walk(ls_stem_log_scripts, source)
 
 tmp <- list()
 
-## !!! Update clean stems by removing buttress Diam measurement !!!
-data_clean$stem <- data_clean$stem |>
-  mutate(
-    log_diam_ob = case_when(
-      updated_tree_code == "227Lp036" & log_no == 1 ~ 21.8,
-      updated_tree_code == "361Cs054" & log_no == 1 ~ 12.3,
-      updated_tree_code == "460An054" & log_no == 1 ~ 15.8,
-      TRUE ~ log_diam_ob
-    )
-  )
 
-tmp$log_base <- data_clean$stem |>
-  select(
-    updated_tree_code, log_no, 
-    log_base_pom = log_base_pom, 
-    log_base_diam_ob = log_diam_ob, 
-    log_base_diam_ub = log_diam_ub
-    )
-
-tmp$tree_info <- data_clean$stem |>
-  select(-starts_with("log_"), -measurement_type, -hr, -dr) |>
+tmp$tree_info <- data_clean$stem_log |>
+  select(-starts_with("log_"), -hr, -dr) |>
   distinct()
 
-data_clean$stem_v <- data_clean$stem |>
-  select(
-    updated_tree_code, log_no, 
-    log_top_pom = log_base_pom, 
-    log_top_diam_ob = log_diam_ob, 
-    log_top_diam_ub = log_diam_ub
-    ) |>
-  group_by(updated_tree_code) |>
-  mutate(
-    log_no_v = log_no - 1,
-    log_no = if_else(log_no == 1, 1, log_no - 1)
-    ) |>
-  ungroup() |>
-  left_join(tmp$log_base, by = join_by(updated_tree_code, log_no)) |>
-  mutate(
-    log_base_pom = if_else(log_no_v == 0, 0, log_base_pom),
-    log_length = log_top_pom - log_base_pom,
-    log_v = round(pi / 80000 * log_length * (log_base_diam_ob^2 + log_top_diam_ob^2), 4)
-  ) |>
-  select(updated_tree_code, log_no_v, log_length, log_v, starts_with("log_base"), starts_with("log_top"))
-
-# summary(data_clean$stem_v)
-# tmp$check <- data_clean$stem_v |> filter(is.na(log_base_pom))
-# tt <- tmp$check2 <- data_clean$stem_v |> filter(updated_tree_code == "227Lp036")
-# tt <- tmp$check2 <- tmp$log_base |> filter(updated_tree_code == "227Lp036")
-
-tmp$tree_stem_v <- data_clean$stem_v |>
+tmp$tree_stem_v <- data_clean$stem_log |>
   group_by(updated_tree_code) |>
   summarise(
     n_log_total = n(),
     log_top_diam = min(log_base_diam_ob, na.rm = T),
     tree_stem_v = sum(log_v, na.rm = T)
-    )
+  )
 
-tmp$tree_stem_v10 <- data_clean$stem_v |>
+tmp$tree_stem_v10 <- data_clean$stem_log |>
   filter(log_top_diam_ob >= 10) |>
   group_by(updated_tree_code) |>
   summarise(
@@ -71,7 +30,7 @@ tmp$tree_stem_v10 <- data_clean$stem_v |>
     tree_stem_v10 = sum(log_v, na.rm = T)
   )
 
-tmp$tree_stem_v20 <- data_clean$stem_v |>
+tmp$tree_stem_v20 <- data_clean$stem_log |>
   filter(log_top_diam_ob >= 20) |>
   group_by(updated_tree_code) |>
   summarise(
@@ -176,5 +135,4 @@ data_clean$tree_stem_v |>
   geom_point(aes(color = species_name), shape = 21) + 
   geom_point(data = tmp$outliers, shape = 21, col = "red", size = 6) +
   theme(legend.position = "none")
-
 

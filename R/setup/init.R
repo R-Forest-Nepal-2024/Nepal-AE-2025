@@ -38,6 +38,8 @@ data_init <- list()
 data_clean <- list()
 data_clean_gg <- list()
 
+## model storage
+stem_taper <- list()
 
 ## Function for getting quick nlme outputs
 

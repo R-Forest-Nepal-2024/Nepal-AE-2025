@@ -18,7 +18,7 @@
 if (!"usr" %in% ls())      source("R/user/user-inputs.R")
 if (!"nlme_out" %in% ls()) source("R/setup/init.R")
 if ("data_init" %in% ls() & length(data_init) == 0) source("R/setup/get-data.R")
-if ("data_clean" %in% ls() & length(data_clean) == 0) source("R/user/prepare-stem-profile.R")
+#if ("data_clean" %in% ls() & length(data_clean) == 0) source("R/user/prepare-stem-profile.R")
 
 tmp <- list()
 
@@ -59,7 +59,7 @@ stem_disc_init <- bind_rows(tmp$sd_single, tmp$sd_quarter)
 stem_disc <- stem_disc_init |>
   mutate(
     dry_weight_UB_inputed = as.logical(dry_weight_UB_inputed),
-    species_code = str_sub(updated_tree_code, 4, 5),
+    tree_species_code = str_sub(updated_tree_code, 4, 5),
     disc_code = disc_no, 
     disc_no = as.numeric(str_sub(disc_code, 2)),
     log_base_pom = case_when(
@@ -70,15 +70,15 @@ stem_disc <- stem_disc_init |>
       disc_no == 5 ~ 7.3,
       TRUE ~ 3.3 + (disc_no - 3) * 2
     ),
-    wd_log_init = round(dry_wt_UB / fresh_vol_UB, 3),
+    wd_wood_init = round(dry_wt_UB / fresh_vol_UB, 3),
     wd_bark_init = round(dry_wt_lab_bark / (fresh_vol_OB - fresh_vol_UB), 3),
-    fd_log_init = round(dry_wt_UB / fresh_wt_UB, 3),
+    fd_wood_init = round(dry_wt_UB / fresh_wt_UB, 3),
     fd_bark_init = round(dry_wt_lab_bark / fresh_wt_lab_bark, 3)
   )
 
 ## Check
 table(stem_disc$disc_no)
-summary(stem_disc$wd_log_init)
+summary(stem_disc$wd_wood_init)
 summary(stem_disc$wd_bark_init)
 summary(stem_disc$dry_weight_UB_inputed)
 
@@ -88,8 +88,8 @@ nrow(stem_disc) == nrow(distinct(data_init$stem_disc, updated_tree_code, disc_no
 tmp$stem_d_maxh <- stem_disc |>
   group_by(updated_tree_code) |>
   summarise(max_h = max(log_base_pom, na.rm = T), .groups = "drop")
-tmp$stem_d_diam <- data_clean$stem |> 
-  select(updated_tree_code, log_base_pom, log_diam_ob, log_diam_ub)
+# tmp$stem_d_diam <- data_clean$stem |> 
+#   select(updated_tree_code, log_base_pom, log_diam_ob, log_diam_ub)
 
 stem_disc <- stem_disc |>
   mutate(
@@ -97,7 +97,7 @@ stem_disc <- stem_disc |>
     log_diam_ub = NA,
     max_h = NA
   ) |>
-  left_join(tmp$stem_d_diam, by = join_by(updated_tree_code, log_base_pom), suffix = c("_rm", "")) |>
+  #left_join(tmp$stem_d_diam, by = join_by(updated_tree_code, log_base_pom), suffix = c("_rm", "")) |>
   left_join(tmp$stem_d_maxh, by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
   select(-ends_with("_rm")) |>
   mutate(
@@ -114,15 +114,15 @@ stem_disc <- stem_disc |>
 ## + Remove obvious outliers ####
 stem_disc <- stem_disc |> 
   mutate(
-    wd_log = case_when(
+    wd_wood = case_when(
       dry_weight_UB_inputed ~ NA_real_,
-      wd_log_init > 1 | wd_log_init < 0.2 ~ NA_real_,
+      wd_wood_init > 1 | wd_wood_init < 0.2 ~ NA_real_,
       log_diam_ob < 10 ~ NA_real_,
-      TRUE ~ wd_log_init
+      TRUE ~ wd_wood_init
     ),
-    wd_log_status = case_when(
+    wd_wood_status = case_when(
       dry_weight_UB_inputed ~ "missing OD",
-      wd_log_init > 1 | wd_log_init < 0.2 ~ "outlier obvious",
+      wd_wood_init > 1 | wd_wood_init < 0.2 ~ "outlier obvious",
       log_diam_ob < 10 ~ "outlier disc too small",
       TRUE ~ "unchanged"
     ),
@@ -138,21 +138,21 @@ stem_disc <- stem_disc |>
       fresh_wt_lab_bark < 10 ~ "outlier sample too small",
       TRUE ~ "unchanged"
     ),
-    # fd_log = case_when(
+    # fd_wood = case_when(
     #   dry_weight_UB_inputed ~ NA_real_,
-    #   fd_log_init > 0.95 | fd_log_init < 0.15 ~ NA_real_,
+    #   fd_wood_init > 0.95 | fd_wood_init < 0.15 ~ NA_real_,
     #   log_diam_ob < 10 ~ NA_real_,
-    #   TRUE ~ fd_log_init
+    #   TRUE ~ fd_wood_init
     # ),
-    # fd_log_status = case_when(
+    # fd_wood_status = case_when(
     #   dry_weight_UB_inputed ~ "missing OD",
-    #   fd_log_init > 0.95 | fd_log_init < 0.15 ~ "outlier obvious",
+    #   fd_wood_init > 0.95 | fd_wood_init < 0.15 ~ "outlier obvious",
     #   log_diam_ob < 10 ~ "outlier sample too small",
     #   TRUE ~ "unchanged"
     # )
   )
 
-table(stem_disc$wd_log_status, useNA = "ifany")
+table(stem_disc$wd_wood_status, useNA = "ifany")
 table(stem_disc$wd_bark_status, useNA = "ifany")
 
 
@@ -160,49 +160,49 @@ table(stem_disc$wd_bark_status, useNA = "ifany")
 ## + Calc species level IQR for outlier detection ####
 
 tmp$species_disc <- stem_disc |>
-  group_by(species_code) |>
+  group_by(tree_species_code) |>
   summarise(
-    wd_log_q1  = quantile(wd_log, 0.25, na.rm = T),
-    wd_log_q3  = quantile(wd_log, 0.75, na.rm = T),
+    wd_wood_q1  = quantile(wd_wood, 0.25, na.rm = T),
+    wd_wood_q3  = quantile(wd_wood, 0.75, na.rm = T),
     wd_bark_q1 = quantile(wd_bark, 0.25, na.rm = T),
     wd_bark_q3 = quantile(wd_bark, 0.75, na.rm = T),
-    # fd_log_q1  = quantile(fd_log, 0.25, na.rm = T),
-    # fd_log_q3  = quantile(fd_log, 0.75, na.rm = T),
+    # fd_wood_q1  = quantile(fd_wood, 0.25, na.rm = T),
+    # fd_wood_q3  = quantile(fd_wood, 0.75, na.rm = T),
     .groups = "drop"
   ) |>
   mutate(
-    wd_log_iqr        = wd_log_q3 - wd_log_q1,
-    wd_log_iqr_lower  = wd_log_q1 - 1.5 * wd_log_iqr,
-    wd_log_iqr_upper  = wd_log_q3 + 1.5 * wd_log_iqr,
+    wd_wood_iqr        = wd_wood_q3 - wd_wood_q1,
+    wd_wood_iqr_lower  = wd_wood_q1 - 1.5 * wd_wood_iqr,
+    wd_wood_iqr_upper  = wd_wood_q3 + 1.5 * wd_wood_iqr,
     wd_bark_iqr       = wd_bark_q3 - wd_bark_q1,
     wd_bark_iqr_lower = wd_bark_q1 - 1.5 * wd_bark_iqr,
     wd_bark_iqr_upper = wd_bark_q3 + 1.5 * wd_bark_iqr,
-    # fd_log_iqr        = fd_log_q3 - fd_log_q1,
-    # fd_log_iqr_lower  = fd_log_q1 - 1.5 * fd_log_iqr,
-    # fd_log_iqr_upper  = fd_log_q3 + 1.5 * fd_log_iqr
+    # fd_wood_iqr        = fd_wood_q3 - fd_wood_q1,
+    # fd_wood_iqr_lower  = fd_wood_q1 - 1.5 * fd_wood_iqr,
+    # fd_wood_iqr_upper  = fd_wood_q3 + 1.5 * fd_wood_iqr
   )
 
 stem_disc <- stem_disc |>
   mutate(
-    wd_log_iqr_lower  = NA,
-    wd_log_iqr_upper  = NA,
+    wd_wood_iqr_lower  = NA,
+    wd_wood_iqr_upper  = NA,
     wd_bark_iqr_lower = NA,
     wd_bark_iqr_upper = NA,
-    # fd_log_iqr_lower  = NA,
-    # fd_log_iqr_upper  = NA
+    # fd_wood_iqr_lower  = NA,
+    # fd_wood_iqr_upper  = NA
   ) |> 
-  left_join(select(tmp$species_disc, species_code, ends_with(c("_lower", "_upper"))), by = join_by(species_code), suffix = c("_rm", "")) |>
+  left_join(select(tmp$species_disc, tree_species_code, ends_with(c("_lower", "_upper"))), by = join_by(tree_species_code), suffix = c("_rm", "")) |>
   select(-ends_with("_rm")) |>
   mutate(
-    wd_log = case_when(
-      !is.na(wd_log) & wd_log_init < wd_log_iqr_lower ~ NA_real_,
-      !is.na(wd_log) & wd_log_init > wd_log_iqr_upper ~ NA_real_,
-      TRUE ~ wd_log
+    wd_wood = case_when(
+      !is.na(wd_wood) & wd_wood_init < wd_wood_iqr_lower ~ NA_real_,
+      !is.na(wd_wood) & wd_wood_init > wd_wood_iqr_upper ~ NA_real_,
+      TRUE ~ wd_wood
     ),
-    wd_log_status = case_when(
-      wd_log_status == "unchanged" & wd_log_init < wd_log_iqr_lower ~ "outlier IQR",
-      wd_log_status == "unchanged" & wd_log_init > wd_log_iqr_upper ~ "outlier IQR", 
-      TRUE ~ wd_log_status
+    wd_wood_status = case_when(
+      wd_wood_status == "unchanged" & wd_wood_init < wd_wood_iqr_lower ~ "outlier IQR",
+      wd_wood_status == "unchanged" & wd_wood_init > wd_wood_iqr_upper ~ "outlier IQR", 
+      TRUE ~ wd_wood_status
     ),
     wd_bark = case_when(
       !is.na(wd_bark) & wd_bark_init < wd_bark_iqr_lower ~ NA_real_,
@@ -214,29 +214,29 @@ stem_disc <- stem_disc |>
       wd_bark_status == "unchanged" & wd_bark_init > wd_bark_iqr_upper ~ "outlier IQR", 
       TRUE ~ wd_bark_status
     ),
-    # fd_log = case_when(
-    #   !is.na(fd_log) & fd_log_init < fd_log_iqr_lower ~ NA_real_,
-    #   !is.na(fd_log) & fd_log_init > fd_log_iqr_upper ~ NA_real_,
-    #   TRUE ~ fd_log
+    # fd_wood = case_when(
+    #   !is.na(fd_wood) & fd_wood_init < fd_wood_iqr_lower ~ NA_real_,
+    #   !is.na(fd_wood) & fd_wood_init > fd_wood_iqr_upper ~ NA_real_,
+    #   TRUE ~ fd_wood
     # ),
-    # fd_log_status = case_when(
-    #   fd_log_status == "unchanged" & fd_log_init < fd_log_iqr_lower ~ "outlier IQR",
-    #   fd_log_status == "unchanged" & fd_log_init > fd_log_iqr_upper ~ "outlier IQR", 
-    #   TRUE ~ fd_log_status
+    # fd_wood_status = case_when(
+    #   fd_wood_status == "unchanged" & fd_wood_init < fd_wood_iqr_lower ~ "outlier IQR",
+    #   fd_wood_status == "unchanged" & fd_wood_init > fd_wood_iqr_upper ~ "outlier IQR", 
+    #   TRUE ~ fd_wood_status
     # )
   )
 
-table(stem_disc$wd_log_status, useNA = "ifany")
-#table(stem_disc$fd_log_status, useNA = "ifany")
+table(stem_disc$wd_wood_status, useNA = "ifany")
+#table(stem_disc$fd_wood_status, useNA = "ifany")
 table(stem_disc$wd_bark_status, useNA = "ifany")
 
 # stem_disc |>
-#   filter(wd_log_init < 1.1) |>
-#   ggplot(aes(x = rh, y = wd_log_init)) +
-#   geom_point(aes(color = wd_log_status), size = 0.8) +
-#   geom_line(aes(y = wd_log_iqr_lower)) +
-#   geom_line(aes(y = wd_log_iqr_upper)) +
-#   facet_wrap(~species_code) +
+#   filter(wd_wood_init < 1.1) |>
+#   ggplot(aes(x = rh, y = wd_wood_init)) +
+#   geom_point(aes(color = wd_wood_status), size = 0.8) +
+#   geom_line(aes(y = wd_wood_iqr_lower)) +
+#   geom_line(aes(y = wd_wood_iqr_upper)) +
+#   facet_wrap(~tree_species_code) +
 #   scale_color_viridis_d()
 
 # stem_disc |>
@@ -245,50 +245,50 @@ table(stem_disc$wd_bark_status, useNA = "ifany")
 #   geom_point(aes(color = wd_bark_status), size = 0.8) +
 #   geom_line(aes(y = wd_bark_iqr_lower)) +
 #   geom_line(aes(y = wd_bark_iqr_upper)) +
-#   facet_wrap(~species_code) +
+#   facet_wrap(~tree_species_code) +
 #   scale_color_viridis_d()
 
 
 ##
-## Correct missing wd_log ####
+## Correct missing wd_wood ####
 ##
 
 ## + Visual Checks ####
 stem_disc |>
-  filter(wd_log_init <= 1.2, wd_log_init >= 0.2) |>
-  ggplot(aes(x = rh, y = wd_log_init)) +
-  geom_point(aes(color = wd_log_status), size = 0.8) +
-  geom_line(aes(y = wd_log_iqr_lower)) +
-  geom_line(aes(y = wd_log_iqr_upper)) +
-  facet_wrap(~species_code) +
+  filter(wd_wood_init <= 1.2, wd_wood_init >= 0.2) |>
+  ggplot(aes(x = rh, y = wd_wood_init)) +
+  geom_point(aes(color = wd_wood_status), size = 0.8) +
+  geom_line(aes(y = wd_wood_iqr_lower)) +
+  geom_line(aes(y = wd_wood_iqr_upper)) +
+  facet_wrap(~tree_species_code) +
   scale_color_viridis_d()
 
 stem_disc |>
-  filter(!is.na(wd_log)) |>
-  ggplot(aes(x = rh, y = wd_log)) +
+  filter(!is.na(wd_wood)) |>
+  ggplot(aes(x = rh, y = wd_wood)) +
   geom_point(size = 0.8, alpha = 0.2) +
   geom_smooth() +
-  facet_wrap(~species_code)
+  facet_wrap(~tree_species_code)
 
 ## + Test lm for pinus ####
 # stem_disc |>
-#   filter(species_code == "Pr", !is.na(wd_log)) |>
+#   filter(tree_species_code == "Pr", !is.na(wd_wood)) |>
 #   left_join(select(data_init$tree, updated_tree_code, tree_dbh), by = join_by(updated_tree_code)) |>
 #   mutate(dbh_class = round(tree_dbh / 20) * 20) |>
-#   ggplot(aes(x = rh, y = wd_log)) +
+#   ggplot(aes(x = rh, y = wd_wood)) +
 #   #geom_point(aes(color = tree_dbh), size = 0.8) +
 #   geom_point(aes(color = as.character(dbh_class)), size = 0.8) +
 #   geom_smooth(aes(group = dbh_class), method = "lm", se = F) +
-#   facet_wrap(~species_code)
+#   facet_wrap(~tree_species_code)
 # 
 # 
 # lm_pr_dat <- stem_disc |>
-#   filter(species_code == "Pr", !is.na(wd_log)) |>
+#   filter(tree_species_code == "Pr", !is.na(wd_wood)) |>
 #   left_join(select(data_init$tree, updated_tree_code, tree_dbh), by = join_by(updated_tree_code)) |>
 #   mutate(dbh_class = floor(tree_dbh / 20) * 20)
 # 
-# lm_pr <- lm(wd_log~rh, data = lm_pr_dat)
-# lm_pr <- lme(wd_log~rh, random = ~1 | dbh_class, data = lm_pr_dat)
+# lm_pr <- lm(wd_wood~rh, data = lm_pr_dat)
+# lm_pr <- lme(wd_wood~rh, random = ~1 | dbh_class, data = lm_pr_dat)
 # summary(lm_pr)
 # ranef(lm_pr)
 ## Not used - for research purpose
@@ -298,15 +298,15 @@ stem_disc |>
 ## (For Pinus, slight downward trend not accounted for)
 
 tmp$wd_meantree <- stem_disc |>
-  filter(!is.na(wd_log)) |>
-  summarise(wd_log_meantree = mean(wd_log, na.rm = T), .by = updated_tree_code)
+  filter(!is.na(wd_wood)) |>
+  summarise(wd_wood_meantree = mean(wd_wood, na.rm = T), .by = updated_tree_code)
 
 tmp$wd_meansp <- stem_disc |>
-  filter(!is.na(wd_log)) |>
-  summarise(wd_log_meansp = mean(wd_log, na.rm = T), .by = species_code)
+  filter(!is.na(wd_wood)) |>
+  summarise(wd_wood_meansp = mean(wd_wood, na.rm = T), .by = tree_species_code)
 
 tmp$vec_wd_tree <- stem_disc |>
-  filter(!is.na(wd_log)) |>
+  filter(!is.na(wd_wood)) |>
   summarise(count = n(), .by = updated_tree_code) |>
   filter(count > 3) |>
   pull(updated_tree_code)
@@ -314,37 +314,39 @@ tmp$vec_wd_tree <- stem_disc |>
 
 stem_disc <- stem_disc |>
   mutate(
-    wd_log_meantree = NA,
-    wd_log_meansp = NA
+    wd_wood_meantree = NA,
+    wd_wood_meansp = NA
   ) |>
   left_join(tmp$wd_meantree, by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
-  left_join(tmp$wd_meansp, by = join_by(species_code), suffix = c("_rm", "")) |>
+  left_join(tmp$wd_meansp, by = join_by(tree_species_code), suffix = c("_rm", "")) |>
   select(-ends_with("_rm")) |>
   mutate(
-    wd_log_corr = case_when(
-      is.na(wd_log) & !(updated_tree_code %in% tmp$vec_wd_tree) ~ wd_log_meansp,
-      is.na(wd_log) ~ wd_log_meantree,
-      TRUE ~ wd_log 
+    wd_wood_corr = case_when(
+      is.na(wd_wood) & !(updated_tree_code %in% tmp$vec_wd_tree) ~ wd_wood_meansp,
+      is.na(wd_wood) ~ wd_wood_meantree,
+      TRUE ~ wd_wood 
     ),
-    wd_log_corr_status = case_when(
-      is.na(wd_log) & !(updated_tree_code %in% tmp$vec_wd_tree) ~ "species mean",
-      is.na(wd_log) ~ "tree mean",
+    wd_wood_corr_status = case_when(
+      is.na(wd_wood) & !(updated_tree_code %in% tmp$vec_wd_tree) ~ "species mean",
+      is.na(wd_wood) ~ "tree mean",
       TRUE ~ "measured" 
     )
   )
 
-table(stem_disc$wd_log_corr_status, useNA = "ifany") 
+table(stem_disc$wd_wood_corr_status, useNA = "ifany") 
 
 ## Check
-stem_disc |>
-  #filter(species_code %in% c("Pr")) |>
-  #filter(wd_log_init <= 0.95, wd_log_init >= 0.15, log_diam_ob >= 10) |>
-  ggplot(aes(x = rh, y = wd_log_corr)) +
-  geom_point(aes(color = wd_log_status), size = 0.8) +
-  geom_line(aes(y = wd_log_iqr_lower)) +
-  geom_line(aes(y = wd_log_iqr_upper)) +
-  facet_wrap(~species_code) +
+data_clean_gg$stem_disc_log_check <- stem_disc |>
+  #filter(tree_species_code %in% c("Pr")) |>
+  #filter(wd_wood_init <= 0.95, wd_wood_init >= 0.15, log_diam_ob >= 10) |>
+  ggplot(aes(x = rh, y = wd_wood_corr)) +
+  geom_point(aes(color = wd_wood_status), size = 0.8) +
+  geom_line(aes(y = wd_wood_iqr_lower)) +
+  geom_line(aes(y = wd_wood_iqr_upper)) +
+  facet_wrap(~tree_species_code) +
   scale_color_viridis_d()
+
+print(data_clean_gg$stem_disc_log_check)
 
 ##
 ## Correct missing Bark density ####
@@ -352,28 +354,28 @@ stem_disc |>
 
 ## + visual checks ####
 stem_disc |>
-  #filter(species_code %in% c("Pr", "Sr")) |>
+  #filter(tree_species_code %in% c("Pr", "Sr")) |>
   filter(wd_bark_init <= 1.2, wd_bark_init >= 0.1) |>
   ggplot(aes(x = rh, y = wd_bark_init)) +
   geom_point(aes(color = wd_bark_status), size = 0.8) +
   geom_line(aes(y = wd_bark_iqr_lower)) +
   geom_line(aes(y = wd_bark_iqr_upper)) +
-  facet_wrap(~species_code) +
+  facet_wrap(~tree_species_code) +
   scale_color_viridis_d()
 
 stem_disc |>
-  #filter(species_code == "Sr") |>
+  #filter(tree_species_code == "Sr") |>
   #left_join(select(data_init$tree, updated_tree_code, tree_dbh), by = join_by(updated_tree_code)) |>
   filter(!is.na(wd_bark), fresh_wt_lab_bark >= 10) |>
   ggplot(aes(x = rh, y = wd_bark)) +
   geom_point(size = 0.8, alpha = 0.2) +
   geom_smooth() +
-  facet_wrap(~species_code)
+  facet_wrap(~tree_species_code)
 
 
 ## + Correction ####
 
-## Similar correction as wd_log, using tree or species averages. Expecting slight 
+## Similar correction as wd_wood, using tree or species averages. Expecting slight 
 ## overestimate for Pr and Ta
 
 tmp$wd_bark_meantree <- stem_disc |>
@@ -382,7 +384,7 @@ tmp$wd_bark_meantree <- stem_disc |>
 
 tmp$wd_bark_meansp <- stem_disc |>
   filter(!is.na(wd_bark)) |>
-  summarise(wd_bark_meansp = mean(wd_bark, na.rm = T), .by = species_code)
+  summarise(wd_bark_meansp = mean(wd_bark, na.rm = T), .by = tree_species_code)
 
 tmp$vec_wd_bark_tree <- stem_disc |>
   filter(!is.na(wd_bark)) |>
@@ -396,7 +398,7 @@ stem_disc <- stem_disc |>
     wd_bark_meansp = NA
   ) |>
   left_join(tmp$wd_bark_meantree, by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
-  left_join(tmp$wd_bark_meansp, by = join_by(species_code), suffix = c("_rm", "")) |>
+  left_join(tmp$wd_bark_meansp, by = join_by(tree_species_code), suffix = c("_rm", "")) |>
   select(-ends_with("_rm")) |>
   mutate(
     wd_bark_corr = case_when(
@@ -414,15 +416,16 @@ stem_disc <- stem_disc |>
 table(stem_disc$wd_bark_corr_status, useNA = "ifany")
 summary(stem_disc$wd_bark_corr)
 
-stem_disc |>
-  #filter(species_code %in% c("Pr")) |>
-  #filter(fd_log_init <= 0.95, fd_log_init >= 0.15, log_diam_ob >= 10) |>
+data_clean_gg$stem_disc_bark_check <- stem_disc |>
+  #filter(tree_species_code %in% c("Pr")) |>
+  #filter(fd_wood_init <= 0.95, fd_wood_init >= 0.15, log_diam_ob >= 10) |>
   ggplot(aes(x = rh, y = wd_bark_corr)) +
   geom_point(aes(color = wd_bark_status), size = 0.8) +
   geom_line(aes(y = wd_bark_iqr_lower)) +
   geom_line(aes(y = wd_bark_iqr_upper)) +
-  facet_wrap(~species_code) +
+  facet_wrap(~tree_species_code) +
   scale_color_viridis_d()
+print(data_clean_gg$stem_disc_bark_check)
 
 ## 
 ## Assign to clean data ####

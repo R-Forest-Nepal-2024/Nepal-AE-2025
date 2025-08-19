@@ -5,26 +5,24 @@
 ## Gael Sola, FAO, Thakur Sudebi, FRTC
 
 
-## Initiate objects
-usr <- list()
-usr$data_file <- "./data/AE-raw-2025-04-01.xlsx"
-
-data_init <- list()
-data_clean <- list()
-data_clean_gg <- list()
-
-## Model storage
-stem_taper <- list()
+source("R/user/user-inputs.R")
 
 source("R/setup/init.R")
 
 source("R/setup/get-data.R")
 
-source("R/user/prepare-stem-profile.R")
 
-source("R/user/prepare-stem-volume.R")
+source("R/user/04-prepare-stem-log.R")
 
-source("R/user/prepare-stem-biomass.R")
+source("R/user/04a-add-stem-log-profile.R")
+
+source("R/user/04b-add-stem-log-volume.R")
+
+
+source("R/user/07-prepare-stem-disc.R")
+
+
+source("R/user/11-prepare-stem-biomass.R")
 
 
 ## Models
