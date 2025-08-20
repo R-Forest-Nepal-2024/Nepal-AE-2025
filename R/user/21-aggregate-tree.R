@@ -2,6 +2,11 @@
 
 tmp <- list()
 
+##
+## Make tree ####
+##
+
+## + Tmp objects ####
 tmp$plot <- data_init$plot |>
   select(
     updated_tree_code, plot_physio = physiographic_region, plot_prov = province,
@@ -41,6 +46,7 @@ tmp$agg_stem20 <- data_clean$stem_log |>
     tree_stem_v20 = sum(log_vob, na.rm = T)
   )
 
+## + Combine into tree ####
 tree <- data_init$tree |>
   select(-tree_code, -new_tree_code, -starts_with("photo")) |>
   left_join(tmp$plot, by = join_by(updated_tree_code)) |>
@@ -66,7 +72,8 @@ tree <- data_init$tree |>
   left_join(tmp$agg_stem20 , by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
   mutate(
     tree_species_code = str_sub(updated_tree_code, 4, 5),
-    tree_d2h = (tree_dbh/100)^2 * tree_total_length
+    tree_d2h = (tree_dbh/100)^2 * tree_total_length,
+    tree_d2hwd = tree_d2h*tree_wd
     ) |>
   select(
     updated_tree_code, tree_dbh, tree_total_length, tree_d2h, tree_wd, tree_wdsp, 
@@ -110,7 +117,6 @@ data_clean_gg$check_v <- tree |>
   geom_point() +
   geom_point(data = tmp$outlier, shape = 21, size = 6, col = "red") +
   geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
-  geom_point(data = tmp$outlier3, shape = 23, size = 6, col = "red") +
   geom_text_repel(data = tmp$outlier, aes(label = updated_tree_code)) +
   theme(legend.position = "bottom") +
   labs(color = "")
@@ -124,16 +130,17 @@ print(data_clean_gg$check_v)
 ## !!! Remove trees with large early branches
 tree <- tree |> filter(!updated_tree_code %in% "551Pr100")
 
-gg_stemV_cleaning <- tree |>
-  filter(tree_dbh < 40) |>
-  ggplot(aes(x = tree_dbh, y = tree_stem_v, color = tree_species_code)) +
-  geom_point() +
-  geom_point(data = tmp$outlier3, shape = 23, size = 6, col = "red") +
-  geom_text_repel(data = tmp$outlier3, aes(label = updated_tree_code)) +
-  theme(legend.position = "bottom") +
-  labs(color = "")
-
-print(gg_stemV_cleaning)
+## NOT NEEDED
+# gg_stemV_cleaning <- tree |>
+#   filter(tree_dbh < 40) |>
+#   ggplot(aes(x = tree_dbh, y = tree_stem_v, color = tree_species_code)) +
+#   geom_point() +
+#   geom_point(data = tmp$outlier3, shape = 23, size = 6, col = "red") +
+#   geom_text_repel(data = tmp$outlier3, aes(label = updated_tree_code)) +
+#   theme(legend.position = "bottom") +
+#   labs(color = "")
+# 
+# print(gg_stemV_cleaning)
 
 
 ## Check
@@ -158,3 +165,64 @@ tree |>
   geom_point(data = tmp$outliers, shape = 22, col = "red", size = 6) +
   theme(legend.position = "none")
 
+## 
+## Check Biomass ####
+##
+
+tree |>
+  #filter(tree_dbh <= 110) |>
+  ggplot(aes(x = tree_dbh, y = tree_stem_b, color = tree_species_code)) +
+  geom_point() +
+  geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
+  theme(legend.position = "none") +
+  facet_wrap(~tree_species_code)
+
+tree |>
+  #filter(tree_dbh <= 110) |>
+  ggplot(aes(x = tree_d2h, y = tree_stem_b, color = tree_species_code)) +
+  geom_point() +
+  geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
+  theme(legend.position = "none") +
+  facet_wrap(~tree_species_code)
+
+tree |>
+  #filter(tree_dbh <= 110) |>
+  ggplot(aes(x = tree_d2hwd, y = tree_stem_b, color = tree_species_code)) +
+  geom_point() +
+  geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
+  theme(legend.position = "none") +
+  facet_wrap(~tree_species_code)
+
+tree |>
+  #filter(tree_dbh <= 110) |>
+  ggplot(aes(x = tree_d2h, y = tree_stem_b, color = tree_species_code)) +
+  geom_point() +
+  geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
+  theme(legend.position = "none")
+
+tree |>
+  #filter(tree_dbh <= 110) |>
+  ggplot(aes(x = tree_d2hwd, y = tree_stem_b, color = tree_species_code)) +
+  geom_point() +
+  geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
+  theme(legend.position = "none")
+
+
+data_clean_gg$check_b <- tree |>
+  #filter(tree_dbh <= 110) |>
+  ggplot(aes(x = tree_d2h, y = tree_stem_b, color = tree_species_code)) +
+  geom_point() +
+  geom_point(data = tmp$outlier2, shape = 22, size = 6, col = "red") +
+  theme(legend.position = "bottom") +
+  labs(color = "")
+
+print(data_clean_gg$check_b)
+
+
+##
+## Get final data ####
+##
+
+data_clean$tree <- tree
+
+rm(tree, tmp)

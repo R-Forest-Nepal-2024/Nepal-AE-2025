@@ -103,6 +103,10 @@ stem_logb |>
   ggplot(aes(x = log_vob, y = log_b)) +
   geom_point()
 
+tmp$check <- stem_logb |> filter(log_b > 1500)
+tt <- tmp$check |> filter(updated_tree_code == "178Ta019")
+## >> 2 logs are big 
+
 # stem_logb |>
 #   ggplot(aes(x = rh, y = )) +
 #   geom_point()

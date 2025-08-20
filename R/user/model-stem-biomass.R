@@ -3,17 +3,17 @@ tmp <- list()
 
 data_md <- data_clean$tree |>
   filter(
-    !(species_name == "Largestroemia parviflora" & tree_dbh > 60),
-    !(species_name == "Schima Wallichi" & tree_dbh > 60),
-    !(species_name == "Shorea robusta" & tree_dbh > 110),
-    !is.na(species_name)
+    !(tree_species_name == "Largestroemia parviflora" & tree_dbh > 60),
+    !(tree_species_name == "Schima Wallichi" & tree_dbh > 60),
+    !(tree_species_name == "Shorea robusta" & tree_dbh > 110),
+    !is.na(tree_species_name)
   ) |>
   mutate(no_group = "a")
 
 ## Check
-ggplot(data_md, aes(x = tree_dbh, y = tree_stem_v)) +
+ggplot(data_md, aes(x = tree_dbh, y = tree_stem_b)) +
   geom_point() +
-  facet_wrap(~species_name)
+  facet_wrap(~tree_species_code)
 
 
 ##
@@ -27,22 +27,22 @@ ggplot(data_md, aes(x = tree_dbh, y = tree_stem_v)) +
 ## 4. run model
 ## 5. get AIC, errors and fitted values
 ## 6. make graphs 
- 
-## 1. V = a*DBH^b, no group, for Terminalia alata
+
+## 1. Bstem = a*DBH^b, no group, for Pr
 
 ## 2. prepare data 
-data_ter <- data_md |> filter(species_name == "Terminalia alata")
+data_pr <- data_md |> filter(tree_species_code == "Pr")
 
 ## 3. find starting values
-start <- coef(lm(log(tree_stem_v) ~ log(tree_dbh), data = data_ter))
+start <- coef(lm(log(tree_stem_b) ~ log(tree_dbh), data = data_pr))
 start[1] <- exp(start[1])
 # start <- c(0.001, 1)
 # start <- c(10, 100)
 
 ## 4. run model
 md <- nlme(
-  model = tree_stem_v ~ a * tree_dbh^b, 
-  data = data_ter,
+  model = tree_stem_b ~ a * tree_dbh^b, 
+  data = data_pr,
   fixed = a + b ~ 1,
   groups = ~no_group,
   start = start, 
@@ -56,7 +56,7 @@ fixef(md)
 
 c_exp <- round(summary(md)$modelStruct$varStruct[1], 4)
 
-data_ter <- data_ter |>
+data_pr <- data_pr |>
   mutate(
     pred    = predict(md),
     res     = residuals(md),
@@ -65,28 +65,28 @@ data_ter <- data_ter |>
   )
 
 ## 6. make graphs 
-gg1 <- ggplot(data_ter, aes(x = tree_dbh)) +
-  geom_point(aes(y = tree_stem_v), size = 0.1) +
+gg1 <- ggplot(data_pr, aes(x = tree_dbh)) +
+  geom_point(aes(y = tree_stem_b), size = 0.1) +
   geom_line(aes(y = pred)) +
   theme(legend.position = "none")
 print(gg1)
 
-gg2 <- ggplot(data_ter, aes(x = pred)) +
-  geom_point(aes(y = tree_stem_v), size = 0.1) +
+gg2 <- ggplot(data_pr, aes(x = pred)) +
+  geom_point(aes(y = tree_stem_b), size = 0.1) +
   geom_abline(intercept = 0, slope = 1, col = "lightgreen")
 print(gg2)
 
-gg3 <- ggplot(data_ter, aes(x = pred, y = res)) +
+gg3 <- ggplot(data_pr, aes(x = pred, y = res)) +
   geom_point(size = 0.1) +
   geom_smooth(se = FALSE)
 print(gg3)
 
-gg4 <- ggplot(data_ter, aes(x = pred, y = res_std)) +
+gg4 <- ggplot(data_pr, aes(x = pred, y = res_std)) +
   geom_point(size = 0.1) +
   geom_smooth(se = FALSE)
 print(gg4)
 
-gg5 <- ggplot(data_ter, aes(x = pred, y = res_w)) +
+gg5 <- ggplot(data_pr, aes(x = pred, y = res_w)) +
   geom_point(size = 0.1) +
   geom_smooth(se = FALSE)
 print(gg5)

@@ -1,9 +1,9 @@
 
-if (!"usr" %in% ls())      source("R/user/user-inputs.R")
-if (!"nlme_out" %in% ls()) source("R/setup/init.R")
-if (length(data_init) == 0) source("R/setup/get-data.R")
-if (!("stem_log" %in% names(data_clean))) source("R/user/01-prepare-stem-log.R")
-if (!("hr" %in% names(data_clean$stem_log))) source("R/user/02-add-stem-log-profile.R")
+# if (!"usr" %in% ls())      source("R/user/user-inputs.R")
+# if (!"nlme_out" %in% ls()) source("R/setup/init.R")
+# if (length(data_init) == 0) source("R/setup/get-data.R")
+# if (!("stem_log" %in% names(data_clean))) source("R/user/01-prepare-stem-log.R")
+# if (!("hr" %in% names(data_clean$stem_log))) source("R/user/02-add-stem-log-profile.R")
 
 tmp <- list()
 
@@ -88,14 +88,21 @@ tt <- tmp$check_length <- stem_logv |>
   filter(log_length > 2) 
 
 tmp$check_length |> pull(updated_tree_code) |> unique() |> sort()
-
+## >> 177Ta018 tree broke during felling resulting in 5 m with no data
 
 ## + Check log volume ####
 stem_logv |>
-  filter(log_length <=2 ) |>
+  filter(log_length <=1.5 ) |>
   ggplot(aes(x = log_base_diam_ob, y = log_vob)) +
-  geom_point() +
+  geom_point(aes(color = log_length)) +
   facet_wrap(~tree_species_group)
+
+stem_logv |>
+  filter(log_length <=1.5, tree_species_code == "Sr") |>
+  ggplot(aes(x = log_base_diam_ob, y = log_vob)) +
+  geom_point(aes(color = log_length)) +
+  facet_wrap(~log_meas_type) +
+  scale_color_viridis_c()
 
 ## + Check log wood volume ####
 stem_logv |>
