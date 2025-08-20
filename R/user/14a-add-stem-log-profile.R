@@ -1,8 +1,10 @@
 
-if (!"usr" %in% ls())      source("R/user/user-inputs.R")
-if (!"nlme_out" %in% ls()) source("R/setup/init.R")
-if (length(data_init) == 0) source("R/setup/get-data.R")
-if (!("stem_log" %in% names(data_clean))) source("R/user/01-prepare-stem-log.R")
+# if (!"usr" %in% ls())      source("R/user/user-inputs.R")
+# if (!"nlme_out" %in% ls()) source("R/setup/init.R")
+# if (length(data_init) == 0) source("R/setup/get-data.R")
+# if (!("stem_log" %in% names(data_clean))) source("R/user/01-prepare-stem-log.R")
+
+tmp <- list()
 
 ##
 ## Add relative D and H ######
@@ -17,7 +19,7 @@ if (!("stem_log" %in% names(data_clean))) source("R/user/01-prepare-stem-log.R")
 #   facet_wrap(~ species_name, ncol = 1)
 
 ## !!! Final data for stem profile !!!
-data_clean$stem_log <- data_clean$stem_log |>
+data_clean$stem_log <- data_clean$stem_log_init |>
   mutate(
     dr = round(log_diam_ob / tree_dbh, 3),
     hr = round(log_base_pom / tree_total_length, 3)

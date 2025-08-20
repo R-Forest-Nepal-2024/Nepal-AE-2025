@@ -7,8 +7,13 @@ if (!("hr" %in% names(data_clean$stem_log))) source("R/user/02-add-stem-log-prof
 
 tmp <- list()
 
-## !!! Update clean stems by removing buttress Diam measurement !!!
-data_clean$stem_log <- data_clean$stem_log |>
+
+##
+## Corrections ####
+##
+
+## + Update clean stems by removing buttress Diam measurement ####
+tmp$stem_log <- data_clean$stem_log |>
   mutate(
     log_diam_ob = case_when(
       updated_tree_code == "227Lp036" & log_no == 1 ~ 21.8,
@@ -18,19 +23,20 @@ data_clean$stem_log <- data_clean$stem_log |>
     )
   )
 
-tmp$log_base <- data_clean$stem_log |>
+
+## 
+## Make log table ####
+##
+
+tmp$log_base <- tmp$stem_log |>
   select(
     updated_tree_code, log_no, 
-    log_base_pom = log_base_pom, 
+    log_base_pom, 
     log_base_diam_ob = log_diam_ob, 
     log_base_diam_ub = log_diam_ub
     )
 
-# tmp$tree_info <- data_clean$stem_log |>
-#   select(-starts_with("log_"), -measurement_type, -hr, -dr) |>
-#   distinct()
-
-data_clean$stem_logv <- data_clean$stem_log |>
+stem_logv <- tmp$stem_log |>
   select(
     updated_tree_code, log_no, 
     log_top_pom = log_base_pom, 
@@ -61,21 +67,77 @@ data_clean$stem_logv <- data_clean$stem_log |>
   ) |>
   select(updated_tree_code, starts_with("tree_"), log_no_v, log_length, log_vob, log_vub, log_vbark, starts_with("log_base"), starts_with("log_top"), everything())
 
-# summary(data_clean$stem_logv)
-# tmp$check <- data_clean$stem_logv |> filter(is.na(log_base_pom))
-# tt <- tmp$check2 <- data_clean$stem_logv |> filter(updated_tree_code == "227Lp036")
+## Checks
+summary(stem_logv)
+# tmp$check <- stem_logv |> filter(is.na(log_base_pom))
+# tt <- tmp$check2 <- stem_logv |> filter(updated_tree_code == "227Lp036")
 # tt <- tmp$check2 <- tmp$log_base |> filter(updated_tree_code == "227Lp036")
 
-data_clean_gg$stem_log_vob <- data_clean$stem_logv |>
+##
+## Checks ####
+##
+
+## + Check log length ####
+gg <- stem_logv |>
+  ggplot(aes(x = log_base_diam_ob, y = log_length)) +
+  geom_point() +
+  facet_wrap(~tree_species_group)
+print(gg)
+
+tt <- tmp$check_length <- stem_logv |>
+  filter(log_length > 2) 
+
+tmp$check_length |> pull(updated_tree_code) |> unique() |> sort()
+
+
+## + Check log volume ####
+stem_logv |>
+  filter(log_length <=2 ) |>
   ggplot(aes(x = log_base_diam_ob, y = log_vob)) +
   geom_point() +
   facet_wrap(~tree_species_group)
-print(data_clean_gg$stem_log_vob)
 
-
-## check ratio bark wood
-data_clean$stem_logv |>
-  ggplot(aes(x = log_vob, y = ratio_vbark)) +
+## + Check log wood volume ####
+stem_logv |>
+  ggplot(aes(x = log_base_diam_ob, y = log_vub)) +
   geom_point() +
   facet_wrap(~tree_species_group)
 
+## Aborted, only 3 values concerned, they were removed
+# tmp$vec_missing <- stem_logv |> 
+#   filter(is.na(log_base_diam_ub)) |>
+#   pull(updated_tree_code)
+# tmp$vec_missing
+# 
+# stem_logv |>
+#   filter(updated_tree_code %in% tmp$vec_missing) |>
+#   ggplot(aes(x = log_vob, y = log_vub)) +
+#   geom_point() +
+#   facet_wrap(~updated_tree_code)
+# 
+# ## >> fill log_vub based on linear projection
+# dat_060 <- stem_logv |> filter(updated_tree_code == "060An006")
+# lm_060 <- lm(log_vub ~ log_vob, data = dat_060)
+
+
+## + check V bark
+stem_logv |>
+  ggplot(aes(x = log_vob, y = log_vbark)) +
+  geom_point() +
+  facet_wrap(~tree_species_group)
+
+##
+## Assign clean table ####
+##
+
+data_clean$stem_log <- stem_logv
+
+gg <- data_clean$stem_log |>
+  filter(log_length <=2 ) |>
+  ggplot(aes(x = log_base_diam_ob, y = log_vob)) +
+  geom_point() +
+  facet_wrap(~tree_species_group)
+
+print(gg)
+
+rm(stem_logv, tmp, gg)

@@ -9,15 +9,15 @@
 ## 6. stem disk preparation
 
 ## Load preparation scripts ####
-
-if (!"usr" %in% ls())      source("R/user/user-inputs.R")
-if (!"nlme_out" %in% ls()) source("R/setup/init.R")
-if (length(data_init) == 0) source("R/setup/get-data.R")
-
-ls_stem_log_scripts <- list.files("R/user", pattern = "04.*stem-log", full.names = T)
-if (!("stem_log" %in% names(data_clean))) walk(ls_stem_log_scripts, source)
-
-if (!("stem_disc" %in% names(data_clean))) source("R/user/07-prepare-stem-disc.R")
+# 
+# if (!"usr" %in% ls())      source("R/user/user-inputs.R")
+# if (!"nlme_out" %in% ls()) source("R/setup/init.R")
+# if (length(data_init) == 0) source("R/setup/get-data.R")
+# 
+# ls_stem_log_scripts <- list.files("R/user", pattern = "04.*stem-log", full.names = T)
+# if (!("stem_log" %in% names(data_clean))) walk(ls_stem_log_scripts, source)
+# 
+# if (!("stem_disc" %in% names(data_clean))) source("R/user/07-prepare-stem-disc.R")
 
 tmp <- list()
 
@@ -38,9 +38,7 @@ tmp$wd_wood_meansp   <- data_clean$stem_disc |> distinct(tree_species_code, spec
 tmp$wd_bark_meantree <- data_clean$stem_disc |> distinct(updated_tree_code, tree_wd_bark = wd_bark_meantree)
 tmp$wd_bark_meansp   <- data_clean$stem_disc |> distinct(tree_species_code, species_wd_bark = wd_bark_meansp)
 
-
-
-stem_logb <- data_clean$stem_logv |>
+stem_logb <- data_clean$stem_log |>
   mutate(
     disc_no = case_when(
       log_top_pom <=  1.3 ~ 1,
@@ -65,18 +63,20 @@ stem_logb <- data_clean$stem_logv |>
   select(-ends_with("_rm")) |>
   mutate(
     log_bwood = case_when(
-      !is.na(disc_wd_wood) ~ log_vub * disc_wd_wood,
-      !is.na(tree_wd_wood) ~ log_vub * tree_wd_wood,
+      !is.na(disc_wd_wood) ~ log_vub * disc_wd_wood * 1000,
+      !is.na(tree_wd_wood) ~ log_vub * tree_wd_wood * 1000,
       TRUE ~ log_vub * species_wd_wood
     ),
     log_bbark = case_when(
-      !is.na(disc_wd_bark) ~ log_vub * disc_wd_bark,
-      !is.na(tree_wd_bark) ~ log_vub * tree_wd_bark,
+      !is.na(disc_wd_bark) ~ log_vub * disc_wd_bark * 1000,
+      !is.na(tree_wd_bark) ~ log_vub * tree_wd_bark * 1000,
       TRUE ~ log_vub * species_wd_bark
     ),
     log_b = log_bwood + log_bbark
   )
 
+summary(stem_logb$disc_wd_wood)
+summary(stem_logb$disc_wd_wood)
 summary(stem_logb$log_b)
 summary(stem_logb$log_bwood)
 summary(stem_logb$log_bbark)
@@ -95,7 +95,6 @@ stem_logb |>
   geom_point() +
   scale_y_continuous(minor_breaks = seq(0,max(stem_logb$log_base_pom), 1))
 
-
 stem_logb |>
   ggplot(aes(x = log_base_diam_ob^2*log_length, y = log_b)) +
   geom_point()
@@ -104,9 +103,27 @@ stem_logb |>
   ggplot(aes(x = log_vob, y = log_b)) +
   geom_point()
 
-stem_logb |>
-  ggplot(aes(x = rh, y = )) +
+# stem_logb |>
+#   ggplot(aes(x = rh, y = )) +
+#   geom_point()
+
+##
+## Make final table ####
+##
+
+data_clean$stem_log <- stem_logb
+
+gg <- data_clean$stem_log |>
+  ggplot(aes(x = log_vob, y = log_b)) +
   geom_point()
+
+print(gg)
+
+rm(stem_logb, tmp, gg)
+
+##
+## Old checks ####
+##
 
 
 # ## Group field measurements of Quarters

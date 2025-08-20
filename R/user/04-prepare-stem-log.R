@@ -13,9 +13,7 @@ tmp$plot <- data_init$plot |>
     )
 
 tmp$tree_species <- data_init$tree |>
-  select(
-    updated_tree_code, tree_species_name = species_name
-    ) |>
+  select(updated_tree_code, tree_species_name) |>
   mutate(tree_species_code = str_sub(updated_tree_code, 4, 5))
 
 tmp$tree_length <- data_init$stem |> 
@@ -24,7 +22,7 @@ tmp$tree_length <- data_init$stem |>
 
 ## Add a table with tree total length and diam = 0
 ## Make new cols for log top measurements, with DBH 0 for last measurement
-vec_treeid <- sort(unique(data_clean$stem_log$updated_tree_code))
+vec_treeid <- sort(unique( data_clean$stem_log_init$updated_tree_code))
 
 tmp$tree_add_top <- tmp$tree_length |>
   mutate(
@@ -98,7 +96,17 @@ tmp$stem_cleantop <- tmp$stem_bind |>
 # 
 # check3 <- tmp$stem_bind |> filter(updated_tree_code == "015Sr009")
 
-data_clean$stem_log <- tmp$stem_cleantop |>
+##
+## Make final data ####
+##
+
+## No NA allowed in diam OB and UB
+tmp$stem_cleantop |> filter(is.na(log_diam_ob))
+tmp$stem_cleantop |> filter(is.na(log_diam_ub))
+## >> only 3 values for UB, remove
+
+ data_clean$stem_log_init <- tmp$stem_cleantop |>
+  filter(!is.na(log_diam_ob), !is.na(log_diam_ub)) |>
   group_by(updated_tree_code) |>
   mutate(
     log_no = row_number(),
@@ -117,34 +125,41 @@ data_clean$stem_log <- tmp$stem_cleantop |>
     tree_conif = if_else(tree_species_name == "Pinus roxburghii", "conif", "broadl")
   )
 
+##
+## Checks ####
+##
 
-## Check diameters
-tmp$vec_missing <- data_clean$stem_log |> 
+## + Check missing under bark diameters 
+tmp$vec_missing <-  data_clean$stem_log_init |> 
   filter(is.na(log_diam_ub)) |>
   pull(updated_tree_code)
 tmp$vec_missing
+## >> Checked that records are missing cause discs broke
 
-tt <- data_clean$stem_log |> filter(updated_tree_code == "272Ta039")
+#tt <-  data_clean$stem_log_init |> filter(updated_tree_code == "272Ta039")
 
-data_clean$stem_log |>
+
+## + Check oB vs UB ####
+## >> Few manual corrections, now ok, maybe still be few errors
+ data_clean$stem_log_init |>
   ggplot(aes(x = log_diam_ob, y = log_diam_ub)) +
   geom_point(aes(color = log_meas_type)) +
   geom_abline(slope = 1, intercept = 0) +
   facet_wrap(~tree_species_code)
 
-data_clean$stem_log |>
+ data_clean$stem_log_init |>
   ggplot(aes(x = log_diam_ob, y = log_bark_thickness)) +
   geom_point(alpha = 0.2) +
   facet_wrap(~tree_species_code)
 
-data_clean$stem_log |>
+ data_clean$stem_log_init |>
   filter(log_diam_ob > 20) |>
   ggplot(aes(x = log_diam_ob, y = log_barkwood)) +
   geom_point(alpha = 0.2) +
   facet_wrap(~tree_species_code)
 
 ## !! For manual correction
-# tmp$vec_error <- data_clean$stem_log |>
+# tmp$vec_error <-  data_clean$stem_log_init |>
 #   #filter(log_diam_ob > 20, tree_species_code %in% c("An", "Cs", "Lp"), log_barkwood > 0.2) |>
 #   filter(log_diam_ob > 20, tree_species_code %in% c("Pr", "Sr", "Sw"), log_barkwood > 0.31) |>
 #   pull(updated_tree_code) |>
@@ -152,10 +167,10 @@ data_clean$stem_log |>
 #   sort()
 # tmp$vec_error
 # 
-# tt <- data_clean$stem_log |> 
+# tt <-  data_clean$stem_log_init |> 
 #   filter(updated_tree_code == "250Sw028" & log_barkwood > 0.31, log_diam_ob > 20)
 # 
-# data_clean$stem_log |>
+#  data_clean$stem_log_init |>
 #   filter(log_diam_ob > 20) |>
 #   ggplot(aes(x = log_diam_ob, y = log_barkwood)) +
 #   geom_point(alpha = 0.2) +
@@ -164,39 +179,44 @@ data_clean$stem_log |>
 ## !!
 
 
+
+##
+## old checks ####
+##
+
 ## Checks NAs from joins
-# summary(data_clean$stem_log)
-# summary(data_clean$stem_log$tree_total_length)
-# table(data_clean$stem_log$species_name, useNA = "ifany")  
-# table(data_clean$stem_log$physiographic_region, useNA = "ifany") 
-# table(data_clean$stem_log$district, useNA = "ifany") 
+# summary( data_clean$stem_log_init)
+# summary( data_clean$stem_log_init$tree_total_length)
+# table( data_clean$stem_log_init$species_name, useNA = "ifany")  
+# table( data_clean$stem_log_init$physiographic_region, useNA = "ifany") 
+# table( data_clean$stem_log_init$district, useNA = "ifany") 
 
 ## Check species and physio for NAs
-# data_clean$stem_log |> 
+#  data_clean$stem_log_init |> 
 #   filter(is.na(species_name)) |> 
 #   pull(updated_tree_code) |> 
 #   unique()
 # 
-# data_clean$stem_log |> 
+#  data_clean$stem_log_init |> 
 #   filter(is.na(physiographic_region)) |> 
 #   pull(updated_tree_code) |> 
 #   unique()
 
 ## CHECKS
-# ggplot(data_clean$stem_log) +
+# ggplot( data_clean$stem_log_init) +
 #   geom_point(aes(x = log_base_pom, y = log_diam_ob, color = log_meas_type), size = 0.1)
 
-# ggplot(data_clean$stem_log) +
+# ggplot( data_clean$stem_log_init) +
 #   geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
 #   theme(legend.position = "none") +
 #   facet_wrap(~ physiographic_region)
 
-# ggplot(data_clean$stem_log) +
+# ggplot( data_clean$stem_log_init) +
 #   geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
 #   theme(legend.position = "none") +
 #   facet_wrap(~species_name)
 
-# data_clean$stem_log |>
+#  data_clean$stem_log_init |>
 #   #filter(log_meas_type %in% c("normal", "top")) |>
 #   ggplot() +
 #   geom_line(aes(x = log_base_pom, y = log_diam_ob, color = updated_tree_code)) +
@@ -204,7 +224,7 @@ data_clean$stem_log |>
 #   facet_wrap(~ district)
 
 ## Check for district with visible error
-# data_clean$stem_log |>
+#  data_clean$stem_log_init |>
 #   filter(log_meas_type %in% c("normal", "top")) |>
 #   filter(district == "Jhapa") |>
 #   ggplot() +
