@@ -1,6 +1,7 @@
 
 
 tmp <- list()
+save_csv <- F
 
 ##
 ## Make tree ####
@@ -70,6 +71,7 @@ tree <- data_init$tree |>
   left_join(tmp$agg_stem   , by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
   left_join(tmp$agg_stem10 , by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
   left_join(tmp$agg_stem20 , by = join_by(updated_tree_code), suffix = c("_rm", "")) |>
+  select(-ends_with("_rm")) |>
   mutate(
     tree_species_code = str_sub(updated_tree_code, 4, 5),
     tree_d2h = (tree_dbh/100)^2 * tree_total_length,
@@ -224,5 +226,7 @@ print(data_clean_gg$check_b)
 ##
 
 data_clean$tree <- tree
+
+ if (save_csv) write_csv(tree, paste0("res/tree-", Sys.Date(), ".csv"))
 
 rm(tree, tmp)

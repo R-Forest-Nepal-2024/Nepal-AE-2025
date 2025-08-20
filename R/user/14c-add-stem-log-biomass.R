@@ -68,9 +68,9 @@ stem_logb <- data_clean$stem_log |>
       TRUE ~ log_vub * species_wd_wood
     ),
     log_bbark = case_when(
-      !is.na(disc_wd_bark) ~ log_vub * disc_wd_bark * 1000,
-      !is.na(tree_wd_bark) ~ log_vub * tree_wd_bark * 1000,
-      TRUE ~ log_vub * species_wd_bark
+      !is.na(disc_wd_bark) ~ log_vbark * disc_wd_bark * 1000,
+      !is.na(tree_wd_bark) ~ log_vbark * tree_wd_bark * 1000,
+      TRUE ~ log_vbark * species_wd_bark
     ),
     log_b = log_bwood + log_bbark
   )

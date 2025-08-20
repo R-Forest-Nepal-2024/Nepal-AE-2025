@@ -10,20 +10,28 @@ source("R/setup/init.R")
 source("R/setup/get-data.R")
 
 ## Clean data 
+tic()
 source("R/user/04-prepare-stem-log.R")
 source("R/user/07-prepare-stem-disc.R")
+toc()
 
 ## Add calculations 
+tic()
 source("R/user/14a-add-stem-log-profile.R")
 source("R/user/14b-add-stem-log-volume.R")
 source("R/user/14c-add-stem-log-biomass.R")
+toc()
 
 ## Aggregate 
+tic()
 source("R/user/21-aggregate-tree.R")
+toc()
 
+## Models >> see R/models
+# tic()
+# source("R/user/model-stem-biomass.R")
+# toc()
 
-## Models
-
-source("R/user/model-stem-profile.R")
+#source("R/user/model-stem-profile.R")
 
 #source("R/user/model-stem-volume.R")

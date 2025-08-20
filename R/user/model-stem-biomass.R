@@ -28,10 +28,14 @@ ggplot(data_md, aes(x = tree_dbh, y = tree_stem_b)) +
 ## 5. get AIC, errors and fitted values
 ## 6. make graphs 
 
-## 1. Bstem = a*DBH^b, no group, for Pr
+## 1. Bstem = a*DBH^b, no group, for Pr, variance c for DBH
 
 ## 2. prepare data 
 data_pr <- data_md |> filter(tree_species_code == "Pr")
+
+ggplot(data_pr, aes(x = tree_dbh, y = tree_stem_b)) +
+  geom_point(aes(color = plot_alt)) +
+  facet_wrap(~tree_species_code)
 
 ## 3. find starting values
 start <- coef(lm(log(tree_stem_b) ~ log(tree_dbh), data = data_pr))
@@ -46,11 +50,12 @@ md <- nlme(
   fixed = a + b ~ 1,
   groups = ~no_group,
   start = start, 
-  weights = varPower(form = ~tree_dbh),
-  control = nlmeControl(maxIter = 100)
+  weights = varPower(form = ~tree_dbh)#,
+  #control = nlmeControl(maxIter = 100)
 )
 
 ## 5. get AIC, errors and fitted values
+summary(md)
 AIC(md)
 fixef(md)
 
@@ -91,8 +96,78 @@ gg5 <- ggplot(data_pr, aes(x = pred, y = res_w)) +
   geom_smooth(se = FALSE)
 print(gg5)
 
+pr_b_d <- nlme_out(
+  .data = data_pr,
+  .out_var = tree_stem_b,
+  .in_var = tree_dbh,
+  .start = start,
+  .md = md,
+  .name_dev = "GS"
+)
+pr_b_d$graph
 
 ## Exercise ####
-## Develop model V = a*(DBH^2.H)^b and compare AIC
+## Develop model B = a*(DBH^2.H)^b and compare AIC
 ## Develop similar model for all species
+
+## + B = a*(DBH^2.H)^b ####
+start <- coef(lm(log(tree_stem_b) ~ log(tree_d2h), data = data_pr))
+start[1] <- exp(start[1])
+# start <- c(0.001, 1)
+
+md <- nlme(
+  model = tree_stem_b ~ a * tree_d2h^b, 
+  data = data_pr,
+  fixed = a + b ~ 1,
+  groups = ~tree_quality,
+  start = start, 
+  weights = varPower(form = ~tree_dbh)#,
+  #control = nlmeControl(maxIter = 100)
+)
+AIC(md)
+fixef(md)
+ranef(md)
+
+pr_b_d2h <- nlme_out(
+  .data = data_pr,
+  .out_var = tree_stem_b,
+  .in_var = tree_d2h,
+  .start = start,
+  .md = md,
+  .name_dev = "GS"
+)
+pr_b_dh$md_info$AIC
+pr_b_dh$graph
+
+## + B = a*DBH^b*H^c ####
+start <- coef(lm(log(tree_stem_b) ~ log(tree_dbh) + log(tree_total_length), data = data_pr))
+start[1] <- exp(start[1])
+# start <- c(0.001, 1)
+# start <- c(10, 100)
+
+md <- nlme(
+  model = tree_stem_b ~ a * tree_dbh^b * tree_total_length^c, 
+  data = data_pr,
+  fixed = a + b + c ~ 1,
+  groups = ~no_group,
+  start = start, 
+  weights = varPower(form = ~tree_dbh)#,
+  #control = nlmeControl(maxIter = 100)
+)
+
+pr_b_dxh <- nlme_out(
+  .data = data_pr,
+  .out_var = tree_stem_b,
+  .in_var = tree_dbh,
+  .start = start,
+  .md = md,
+  .name_dev = "GS"
+)
+pr_b_dxh$graph
+
+
+
+## + Compare models ####
+md_out <- bind_rows(pr_b_d$md_info, pr_b_dh$md_info, pr_b_dxh$md_info)
+md_out
 

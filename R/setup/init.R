@@ -20,7 +20,7 @@ use_package(ggrepel)
 use_package(ggpubr)
 use_package(rlang)
 use_package(tidyverse)
-
+use_package(tictoc)
 
 
 ## Set ggplot theme
@@ -50,7 +50,7 @@ stem_taper <- list()
 # .name_dev = "gs"
 ## !!!
 
-nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev){
+nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev, .sub = "ALL"){
 
   out_var <- enquo(.out_var)
   in_var <- enquo(.in_var)
@@ -114,12 +114,12 @@ nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev){
   
   ## Combine graphs 
   if (is_c) {
-    gg_all <- ggpubr::ggarrange(gg1, gg2, gg3, gg5, align = "hv")
+    gg_all <- ggpubr::ggarrange(gg1, gg2, gg3, gg5, align = "hv", nrow = 1)
   } else {
     gg_all <- ggpubr::ggarrange(
       gg1, 
       ggpubr::ggarrange(gg2, gg4, nrow = 1, align = "hv"),  
-      nrow = 2
+      nrow = 1
       )
   }
   
@@ -146,7 +146,8 @@ nlme_out <- function(.data, .out_var, .in_var, .start, .md, .name_dev){
     c_exp = c_out,
     m_fixef = list(round(fixef(.md), 4)),
     m_ranef = list(round(ranef(.md), 4)),
-    gr = list(gg_all)
+    gr = list(gg_all),
+    subset = .sub
   )
   
   out <- list(sum_out, data_out, gg_all, tt_params, tt_out)
