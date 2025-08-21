@@ -10,7 +10,9 @@ if (!usr$data_file %in% list.files(".", recursive = T, full.names = T)) stop("Pa
 data_init$plot      <- read_xlsx(usr$data_file, sheet = "01-info", na = "NA")
 data_init$tree      <- read_xlsx(usr$data_file, sheet = "03-tree", na = "NA") 
 data_init$stem      <- read_xlsx(usr$data_file, sheet = "04-stem", na = "NA", guess_max = 10000)
-data_init$stem_disc <- read_xlsx(usr$data_file, sheet = "07-disk-stem", na = "NA", guess_max = 5000)
+data_init$stem_disc <- read_xlsx(usr$data_file, sheet = "07-stem-disk", na = "NA", guess_max = 5000)
+data_init$bbranch   <- read_xlsx(usr$data_file, sheet = "05-big-branch", na = "NA", guess_max = 10000)
+data_init$bb_disk   <- read_xlsx(usr$data_file, sheet = "08-big-branch-disk", na = "NA", guess_max = 5000)
 
 ## To compare old data:
 # data_init$stem  <- read_xlsx(usr$data_file, sheet = "04-stem-old", na = "NA", guess_max = 10000)
