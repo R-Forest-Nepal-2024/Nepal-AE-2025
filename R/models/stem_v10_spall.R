@@ -58,7 +58,7 @@ tree |>
 dat_md <- tree |>
   filter(!is.na(tree_stem_v10)) |>
   #filter(tree_dbh <= 110) |>
-  #filter(tree_d2h <= 50) |>
+  filter(tree_d2h <= 50) |>
   mutate(no_group = "a") |>
   rename(V10 = tree_stem_v10, D = tree_dbh, D2H = tree_d2h, H = tree_total_length) |>
   mutate(
@@ -236,6 +236,8 @@ spall_v10_dxh_sp <- nlme_out(
 
 spall_v10_dxh_sp$graph
 spall_v10_dxh_sp$md_summary
+spall_v10_dxh_sp$parameters
+
 
 spall_v10_dxh_sp$data |>
   ggplot(aes(x = D2H, y = V10)) +
@@ -250,6 +252,12 @@ spall_v10_d2h_sp$data |>
   ggplot(aes(x = D2H, y = V10)) +
   geom_point(size = 2) +
   geom_line(aes(y = pred, color = tree_conif)) 
+
+spall_v10_d2h_sp$data |>
+  ggplot(aes(x = D2H, y = V10)) +
+  geom_point(size = 2) +
+  geom_line(aes(y = pred, color = tree_species_code)) +
+  facet_wrap(~tree_species_code)
 
 ##
 ## Group results ####
