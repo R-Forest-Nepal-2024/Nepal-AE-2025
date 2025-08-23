@@ -22,7 +22,6 @@ tic()
 source("R/user/14a-add-stem-log-profile.R")
 source("R/user/14b-add-stem-log-volume.R")
 source("R/user/14c-add-stem-log-biomass.R")
-
 source("R/user/15a-add-branch-log-biomass.R")
 toc()
 

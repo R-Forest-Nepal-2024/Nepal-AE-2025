@@ -20,5 +20,8 @@ summary(bb_logb$bb_log_vub)
 summary(bb_logb$bb_log_vob)
 summary(bb_logb$bb_log_wd_corr)
 
-tmp$missing <- bb_logb |> filter(is.na(bb_logb))
-View(tmp$missing)
+# tmp$missing <- bb_logb |> filter(is.na(bb_logb))
+# tmp$missing
+
+data_clean$bb_log <- bb_logb
+
