@@ -343,7 +343,7 @@ data_clean_gg$check_Btot <- tree |>
   filter(tree_d2hwd <= 30) |>
   ggplot(aes(x = tree_d2hwd, y = tree_Btot, color = tree_species_code)) +
   geom_point(shape = 21) +
-  geom_point(data = tmp$outlier, shape = 21, size = 6, col = "red") +
+  #geom_point(data = tmp$outlier, shape = 21, size = 6, col = "red") +
   geom_point(data = tmp$outliers, shape = 22, size = 6, col = "red") +
   theme(legend.position = "none") +
   facet_wrap(~tree_species_code)
