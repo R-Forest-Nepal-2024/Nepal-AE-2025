@@ -351,8 +351,6 @@ print(data_clean_gg$check_Btot)
 
 
 
-
-
 ##
 ## Get final data ####
 ##

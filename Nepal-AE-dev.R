@@ -28,6 +28,7 @@ toc()
 ## Aggregate 
 tic()
 source("R/user/21-aggregate-tree.R")
+source("R/user/22-compa-tree.R")
 toc()
 
 ## Models >> see R/models
