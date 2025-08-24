@@ -31,7 +31,7 @@ tree <- tree_init |>
   ) |>
   mutate(across(starts_with("B"), \(x) x / 1000))
 
-md <- lm(log(Btot) ~  log(D2HWD), data = tree)
+md <- lm(log(Btot) ~  log(D2H), data = tree)
 
 #plot(md)
 influencePlot(
@@ -52,19 +52,19 @@ tree <- tree |>
 
 outliers <- tree |> filter(D2H > 40)
 #outliers2 <- tree |> filter(cooks > 4 / nrow(tree) )
-outliers3 <- tree |> arrange(desc(cooks)) |> slice_head(n = 4)
+outliers3 <- tree |> arrange(desc(cooks)) |> slice_head(n = 5)
 
 
-tree |>
-  ggplot(aes(x = exp(pred), y = res_std)) +
-  geom_point(aes(size = cooks, fill = cooks), shape = 21) +
-  geom_point(data = outliers, shape = 21, size = 6, col = "red") +
-  #geom_point(data = outliers2, shape = 22, size = 6, col = "red") +
-  geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
-  scale_fill_viridis_c(direction = -1) +
-  labs(
-    caption = "red circle: D2H > 40 m3"
-  )
+# tree |>
+#   ggplot(aes(x = exp(pred), y = res_std)) +
+#   geom_point(aes(size = cooks, fill = cooks), shape = 21) +
+#   geom_point(data = outliers, shape = 21, size = 6, col = "red") +
+#   #geom_point(data = outliers2, shape = 22, size = 6, col = "red") +
+#   geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
+#   scale_fill_viridis_c(direction = -1) +
+#   labs(
+#     caption = "red circle: D2H > 40 m3"
+#   )
 
 tree |>
   ggplot(aes(x = leverage, y = res_std)) +
@@ -74,9 +74,9 @@ tree |>
   geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
   scale_fill_viridis_c(direction = -1) +
   labs(
+    subtitle = "log(Btot) = a + b*log(D)",
     caption = "red circle: D2H > 40 m3"
   )
-
 
 tree |>
   ggplot(aes(x = D2H, y = Btot)) +
@@ -89,29 +89,29 @@ tree |>
     caption = "red circle: D2H > 40 m3"
   )
 
-tree |>
-  filter(D2H < 1) |>
-  ggplot(aes(x = D2H, y = Btot)) +
-  geom_point(aes(size = cooks, fill = cooks), shape = 21) +
-  #geom_point(data = outliers, shape = 23, size = 6, col = "red") +
-  #geom_point(data = outliers2, shape = 22, size = 6, col = "red") +
-  geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
-  scale_fill_viridis_c(direction = -1) +
-  labs(
-    caption = "red circle: D2H > 40 m3"
-  )
+# tree |>
+#   filter(D2H < 1) |>
+#   ggplot(aes(x = D2H, y = Btot)) +
+#   geom_point(aes(size = cooks, fill = cooks), shape = 21) +
+#   #geom_point(data = outliers, shape = 23, size = 6, col = "red") +
+#   #geom_point(data = outliers2, shape = 22, size = 6, col = "red") +
+#   #geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
+#   scale_fill_viridis_c(direction = -1) +
+#   labs(
+#     caption = "red circle: D2H > 40 m3"
+#   )
 
 
-tree |>
-  ggplot(aes(x = D2H, y = Btot)) +
-  geom_point(aes(size = cooks, fill = cooks), shape = 21) +
-  geom_point(data = outliers, shape = 23, size = 6, col = "red") +
-  #geom_point(data = outliers2, shape = 22, size = 6, col = "red") +
-  geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
-  scale_fill_viridis_c(direction = -1) +
-  labs(
-    caption = "red circle: D2H > 40 m3"
-  ) +
-  facet_wrap(~species)
+# tree |>
+#   ggplot(aes(x = D2H, y = Btot)) +
+#   geom_point(aes(size = cooks, fill = cooks), shape = 21) +
+#   geom_point(data = outliers, shape = 21, size = 6, col = "red") +
+#   #geom_point(data = outliers2, shape = 22, size = 6, col = "red") +
+#   geom_label_repel(data = outliers3, aes(label = tree_id), col = "red" , min.segment.length = 0) +
+#   scale_fill_viridis_c(direction = -1) +
+#   labs(
+#     caption = "red circle: D2H > 40 m3"
+#   ) +
+#   facet_wrap(~species)
 
 
