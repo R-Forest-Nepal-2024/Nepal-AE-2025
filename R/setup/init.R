@@ -21,6 +21,7 @@ use_package(ggpubr)
 use_package(rlang)
 use_package(tidyverse)
 use_package(tictoc)
+use_package(car)
 
 
 ## Set ggplot theme

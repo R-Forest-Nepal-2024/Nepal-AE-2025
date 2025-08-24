@@ -141,9 +141,10 @@ tmp$outliers <- tree |>
   ) 
 
 data_clean_gg$check_V_sp <- tree |>
-  filter(D2H <= 40) |>
+  #filter(D2H <= 40) |>
   ggplot(aes(x = D, y = V)) +
   geom_point(aes(color = species), shape = 21) + 
+  geom_point(data = tmp$outlier, shape = 21, col = "red", size = 6) +
   geom_point(data = tmp$outliers, shape = 22, col = "red", size = 6) +
   theme(legend.position = "none") +
   facet_wrap(~species)
@@ -285,24 +286,14 @@ print(data_clean_gg$check_Btot)
 
 
 data_clean_gg$Btot <- tree |>
-  filter(D2H <= 40) |>
+  #filter(D2H <= 40) |>
   ggplot(aes(x = D2HWD, y = Btot, color = species)) +
   geom_point(shape = 21) +
-  #geom_point(data = tmp$outlier, shape = 21, size = 6, col = "red") +
-  #geom_point(data = tmp$outliers, shape = 22, size = 6, col = "red") +
+  geom_point(data = tmp$outlier, shape = 21, size = 6, col = "red") +
+  geom_point(data = tmp$outliers, shape = 22, size = 6, col = "red") +
   theme(legend.position = "none")
 print(data_clean_gg$Btot)
 
 
-data_clean_gg$Btot <- tree |>
-  filter(D2H <= 40) |>
-  filter(!(species %in% c("Lp", "Sw") & D > 60))|>
-  ggplot(aes(x = D2HWD, y = Btot, color = species)) +
-  geom_point(shape = 21) +
-  #geom_point(data = tmp$outlier, shape = 21, size = 6, col = "red") +
-  #geom_point(data = tmp$outliers, shape = 22, size = 6, col = "red") +
-  theme(legend.position = "none") +
-  facet_wrap(~species)
-print(data_clean_gg$Btot)
 
 
